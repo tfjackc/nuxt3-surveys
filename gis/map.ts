@@ -1,6 +1,5 @@
 import Map from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
-
 import Home from "@arcgis/core/widgets/Home";
 const BASEMAP = 'topo-vector'
 

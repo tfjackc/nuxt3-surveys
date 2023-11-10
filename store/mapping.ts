@@ -1,11 +1,8 @@
 import { defineStore } from 'pinia';
 import { initialize } from "~/gis/map";
 import MapView from '@arcgis/core/views/MapView';
-// // import FeatureSet from "@arcgis/core/rest/support/FeatureSet";
-let view: MapView;
-// // let featureSetData: FeatureSet
-// // type StringOrArray = string | string[];
 
+let view: MapView;
 
 export const useMappingStore = defineStore('mapping_store', {
     state: () => ({

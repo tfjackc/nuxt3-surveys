@@ -3,7 +3,9 @@
     <v-col>
       <Search />
     </v-col>
+    <ClientOnly>
       <Map />
+    </ClientOnly>
   </v-container>
 </template>
 
