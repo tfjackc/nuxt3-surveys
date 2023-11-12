@@ -1,21 +1,23 @@
-import Map from '@arcgis/core/Map';
-import MapView from '@arcgis/core/views/MapView';
-import Home from "@arcgis/core/widgets/Home";
-const BASEMAP = 'topo-vector'
-
+const BASEMAP = "topo-vector";
 
 export async function initialize(container: HTMLDivElement) {
+    const [{ default: Map }, { default: MapView }, { default: Home }] =
+        await Promise.all([
+            import("@arcgis/core/Map"),
+            import("@arcgis/core/views/MapView"),
+            import("@arcgis/core/widgets/Home"),
+        ]);
 
     const map = new Map({
-        basemap: BASEMAP
+        basemap: BASEMAP,
         // layers: [landGroup]
-    })
+    });
 
     const view = new MapView({
         map,
         container,
         zoom: 10,
-        center: [ -120.8345, 44.2998 ],
+        center: [-120.8345, 44.2998],
         popupEnabled: true,
         popup: {
             dockEnabled: true,
@@ -23,17 +25,17 @@ export async function initialize(container: HTMLDivElement) {
                 // dock popup at bottom-right side of view
                 buttonEnabled: true,
                 breakpoint: true,
-                position: "bottom-right"
-            }
-        }
-    })
+                position: "bottom-right",
+            },
+        },
+    });
 
     const homeWidget = new Home({
-        view: view
+        view: view,
     });
 
     view.ui.add(homeWidget, "top-left");
 
-    await view.when()
-    return view.when()
+    await view.when();
+    return view.when();
 }
