@@ -21,6 +21,21 @@ export const surveyLayer = new FeatureLayer ({
 });
 // -------------- surveys -----------------
 
+// -------------- address points -----------------
+
+export const addressPointTemplate = {
+    title: "Address: {full_address2}",
+    content: "<p>Maptaxlot: {maptaxlot}</p>",
+}
+export const addressPointLayer = new FeatureLayer ({
+    url: "https://geo.co.crook.or.us/server/rest/services/publicApp/placesGroup/MapServer/2",
+    popupTemplate: addressPointTemplate,
+    outFields:["full_address2","maptaxlot"],
+    definitionExpression: "status = 'Current'"
+})
+
+// -------------- address points -----------------
+
 // -------------- taxlots -----------------
 
 const simpleTaxlotRenderer = new SimpleFillSymbol({
