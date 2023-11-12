@@ -23,25 +23,9 @@ export const useMappingStore = defineStore('mapping_store', {
         fuse_key: '' as string,
         fuse_value: '' as string | number,
         dataLoaded: false as boolean,
-        surveyFields: ["cs","image","rec_y","prepared_for","trsqq","prepared_by","subdivision","type","identification","pp"] as any[],
+        surveyFields: ["cs","image","rec_y","prepared_for","trsqq","prepared_by","subdivision","type","identification","pp"],
     }),
-    getters: {
-        getFeatures(state) {
-            return state.featureAttributes,
-                state.filteredData,
-                state.searchCount,
-                state.form,
-                state.loading,
-                state.searchedValue,
-                state.whereClause,
-                state.surveyLayerCheckbox,
-                state.searchedLayerCheckbox,
-                state.fuse_key,
-                state.fuse_value,
-                state.dataLoaded,
-                state.surveyFields
-        }
-    },
+
     actions: {
         async createMap(mapContainer: HTMLDivElement) {
             if (mapContainer) {
@@ -59,14 +43,16 @@ export const useMappingStore = defineStore('mapping_store', {
             console.log(this.searchedValue)
         },
 
-        async queryLayer(layer: any, out_fields: [], where_clause: string) {
+        async queryLayer(layer: any, out_fields: Ref<string[]>, where_clause: string) {
             const queryLayer = layer.createQuery();
             queryLayer.geometry = layer.geometry;
             queryLayer.where = where_clause;
             queryLayer.outFields = out_fields;
             queryLayer.returnQueryGeometry = true;
 
-            return queryLayer;
+            return layer.queryFeatures(queryLayer).then((fset: any) => {
+                console.log(fset);
+            });
         }
 
     }

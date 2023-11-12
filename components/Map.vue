@@ -9,10 +9,11 @@ import { surveyLayer } from "~/gis/layers";
 
 const app = useMappingStore()
 const mapDiv = ref<HTMLDivElement>()
+const { surveyFields } = storeToRefs(app)
 
 onMounted(async() => {
   await app.createMap(mapDiv.value!)
   await app.addLayerToMap(surveyLayer)
-  await app.queryLayer(surveyLayer);
+  await app.queryLayer(surveyLayer, surveyFields, "1=1");
 })
 </script>
