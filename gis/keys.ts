@@ -10,3 +10,12 @@ export const survey_keys = [
     "identification",
     "pp"
 ]
+
+export const address_keys = [
+    "full_address2",
+    "maptaxlot"
+]
+
+export const taxlot_keys = [
+    "maptaxlot",
+]
