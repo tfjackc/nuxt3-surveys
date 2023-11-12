@@ -19,6 +19,7 @@
   "dependencies": {
     "@arcgis/core": "^4.28.8",
     "@pinia/nuxt": "^0.5.1",
+    "fuse.js": "^7.0.0",
     "pinia": "^2.1.7"
   }
 }

@@ -1,8 +1,8 @@
 <template>
   <v-col cols="auto">
     <v-dialog
-        transition="dialog-top-transition"
-        width="auto"
+      transition="dialog-top-transition"
+      width="auto"
     >
       <template v-slot:activator="{ props }">
         <v-btn v-bind="props" color="primary" size="small" variant="elevated">Disclaimer</v-btn>
@@ -10,9 +10,9 @@
       <template v-slot:default="{ isActive }">
         <v-card>
           <v-toolbar
-              color="primary"
-              title="Disclaimer"
-              size="large"
+            color="primary"
+            title="Disclaimer"
+            size="large"
           ></v-toolbar>
           <v-card-text>
             <div class="text-small pa-12"><strong><h3>Contact surveyor as not all surveys are present in this application (541) 420-8057.</h3></strong> <br />
@@ -20,9 +20,9 @@
           </v-card-text>
           <v-card-actions class="justify-end">
             <v-btn
-                variant="elevated"
-                @click="isActive.value = false"
-                color="primary"
+              variant="elevated"
+              @click="isActive.value = false"
+              color="primary"
             >Agree</v-btn>
           </v-card-actions>
         </v-card>
@@ -30,3 +30,4 @@
     </v-dialog>
   </v-col>
 </template>
+

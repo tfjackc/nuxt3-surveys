@@ -1,3 +1,5 @@
+import {surveyLayer} from "~/gis/layers";
+
 const BASEMAP = "topo-vector";
 
 export async function initialize(container: HTMLDivElement) {
@@ -10,14 +12,14 @@ export async function initialize(container: HTMLDivElement) {
 
     const map = new Map({
         basemap: BASEMAP,
-        // layers: [landGroup]
+       // layers: [surveyLayer]
     });
 
     const view = new MapView({
         map,
         container,
         zoom: 10,
-        center: [-120.8345, 44.2998],
+        center: [-120.5297058, 44.222798],
         popupEnabled: true,
         popup: {
             dockEnabled: true,
