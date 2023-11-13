@@ -1,4 +1,3 @@
-/* CSS url as a string */
 @import "https://js.arcgis.com/4.28/@arcgis/core/assets/esri/themes/dark/main.css";
 
 .map-container {
@@ -41,7 +40,6 @@ a.v-btn {
     min-height: 0vh;
 }
 .v-toolbar__content {
-    background-color: #242424;
     margin: 0;
     padding-left: 20px;
     color: white;

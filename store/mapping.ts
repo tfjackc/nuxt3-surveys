@@ -5,12 +5,13 @@ import FeatureSet from "@arcgis/core/rest/support/FeatureSet";
 import {
     surveyLayer,
     graphicsLayer,
-    addressPointLayer, taxlotLayer,
+    addressPointLayer, taxlotLayer, simpleFillSymbol, surveyTemplate,
 } from "~/gis/layers";
 import type {Ref} from "vue";
-import Fuse, {type FuseResultMatch } from "fuse.js";
-import { keys } from "~/gis/keys";
-import {addressFields, surveyFields, taxlotFields} from "~/gis/layer_info";
+import Fuse, { type FuseResultMatch } from "fuse.js";
+import {address_keys, keys, survey_keys, taxlot_keys} from "~/gis/keys";
+import { addressFields, surveyFields, taxlotFields } from "~/gis/layer_info";
+import Graphic from "@arcgis/core/Graphic";
 
 let view: MapView;
 type StringOrArray = string | string[];
@@ -28,6 +29,7 @@ export const useMappingStore = defineStore('mapping_store', {
         searchedLayerCheckbox: false,
         fuse_key: '' as string,
         fuse_value: '' as string | number,
+        keys_from_search:  {} as Set<unknown>,
         dataLoaded: false as boolean,
         surveyFields: [] as string[] | Ref<string[]>,
         layerFields: [] as string[],
@@ -49,19 +51,37 @@ export const useMappingStore = defineStore('mapping_store', {
             }
         },
 
-        async getData() {
-            this.surveyData = await this.queryLayer(surveyLayer, surveyFields, "1=1");
-            this.addressData = await this.queryLayer(addressPointLayer, addressFields, "Status ='Current'")
-            this.taxlotData = await this.queryLayer(taxlotLayer, taxlotFields, "1=1")
+        async initGetData() {
+           await this.surveyData.push(this.queryLayer(surveyLayer, surveyFields, "1=1"));
+           await this.addressData.push(this.queryLayer(addressPointLayer, addressFields, "Status ='Current'"));
+           await this.taxlotData.push(this.queryLayer(taxlotLayer, taxlotFields, "1=1"))
         },
 
         async onSubmit() {
+            try {
+                graphicsLayer.graphics.removeAll()
+                view.graphics.removeAll()
 
-            await this.iterateFeatureSet(this.surveyData);
-            await this.iterateFeatureSet(this.addressData);
-            await this.iterateFeatureSet(this.taxlotData);
+                this.featureAttributes = [];
+                const [surveys, addresses, taxlots] =
+                    await Promise.all([
+                        this.openPromise(this.surveyData),
+                        this.openPromise(this.addressData),
+                        this.openPromise(this.taxlotData),
+                    ]);
+                await this.iterateFeatureSet(surveys)
+                await this.iterateFeatureSet(addresses)
+                await this.iterateFeatureSet(taxlots)
+                await this.fuseSearchData();
 
-            await this.fuseSearchData();
+                await this.getKeyValues(this.keys_from_search)
+
+                return this.queryLayer(surveyLayer, surveyFields, this.whereClause).then((fset: any) => {
+                    this.createGraphicLayer(fset);
+                });
+            } catch (error) {
+                console.log(error)
+            }
         },
 
         async queryLayer(layer: any, out_fields: string[] | Ref<string[]>, where_clause: StringOrArray) {
@@ -70,6 +90,7 @@ export const useMappingStore = defineStore('mapping_store', {
             queryLayer.where = where_clause;
             queryLayer.outFields = out_fields;
             queryLayer.returnQueryGeometry = true;
+            queryLayer.spatialRelationship = "intersects";
             // return layer.queryFeatures(queryLayer).then((fset: any) => {
             //     //this.createGraphicLayer(fset);
             //     featureSetData = fset;
@@ -77,17 +98,23 @@ export const useMappingStore = defineStore('mapping_store', {
             return layer.queryFeatures(queryLayer);
         },
 
-        async iterateFeatureSet(featureSet: FeatureSet) {
-            featureSet.features.forEach((feature) => {
+        async openPromise(data: any) {
+            return Promise.all(data);
+        },
+
+        async iterateFeatureSet(featureSets: any[]) {
+            // Flatten the array of featureSets and extract features
+            const features = featureSets.flatMap(featureSet => featureSet.features || []);
+
+            features.forEach((feature: any) => {
                 this.featureAttributes.push(feature.attributes);
-                //return feature.attributes
             });
-            //console.log(this.featureAttributes)
         },
         //
         async fuseSearchData() {
+            this.whereClause = '';
             const uniqueClauses = new Set(); // Use a Set to store unique clauses
-
+            const uniqueKeys = new Set(); // Use a Set to store unique keys
             const fuse = new Fuse(this.featureAttributes, {
                 keys: keys, // Fields to search in
                 includeMatches: true, // Include match information
@@ -106,6 +133,7 @@ export const useMappingStore = defineStore('mapping_store', {
                 matches.forEach((match: any) => {
                     this.fuse_key = match.key; // Key that matched the search query
                     this.fuse_value = match.value; // Value that matched the search query
+                    this.keys_from_search = uniqueKeys.add(this.fuse_key)
                     // You can use key and value as needed in your code
                     const clause = `${this.fuse_key} LIKE '%${this.searchedValue}%'`;
                     // Add the clause to the uniqueClauses set
@@ -121,6 +149,50 @@ export const useMappingStore = defineStore('mapping_store', {
             }
             // Log the generated WHERE clause for debugging
             console.log('Generated WHERE clause:', this.whereClause);
+        },
+
+        async createGraphicLayer(fset: any) {
+            await this.clearSurveyLayer();
+            if (fset && fset.features) {
+                fset.features.map(async (layer: any) => {
+                    const graphic = new Graphic({
+                        geometry: layer.geometry,
+                        attributes: layer.attributes,
+                        symbol: simpleFillSymbol,
+                        popupTemplate: surveyTemplate
+                    });
+
+                    graphicsLayer.graphics.push(graphic);
+                    view.map.add(graphicsLayer);
+
+                    return layer.attributes;
+                });
+
+                const graphicsExtent = fset.features.reduce((extent: any, survey: any) => {
+                    extent.union(survey.geometry.extent);
+                    return extent;
+                }, fset.features[0].geometry.extent);
+
+                view.goTo(graphicsExtent).then(() => {
+                    console.log("view.GoTo Searched Surveys");
+                });
+            } else {
+                console.warn('No features found in the query result.');
+            }
+        },
+
+        async getKeyValues(keys: any) {
+            keys.forEach((key: any) => {
+                if (survey_keys.includes(key)) {
+                    console.log("Survey Field: " + key)
+                }
+                else if (address_keys.includes(key)) {
+                    console.log("Address Field: " + key)
+                }
+                else if (taxlot_keys.includes(key)) {
+                    console.log("Taxlot Field: " + key)
+                }
+            })
         },
 
         async clearSurveyLayer() {

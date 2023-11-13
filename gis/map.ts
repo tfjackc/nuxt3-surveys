@@ -1,5 +1,3 @@
-import {surveyLayer} from "~/gis/layers";
-
 const BASEMAP = "topo-vector";
 
 export async function initialize(container: HTMLDivElement) {

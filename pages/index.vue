@@ -53,8 +53,8 @@ const panel = ref([0])
 //   }
 // }
 //
-// onMounted(async() => {
-//   await mapping_store.getData()
-// })
+onMounted(async() => {
+  await mapping_store.initGetData()
+})
 
 </script>
