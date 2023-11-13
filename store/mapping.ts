@@ -8,7 +8,7 @@ import {
     addressPointLayer, taxlotLayer,
 } from "~/gis/layers";
 import type {Ref} from "vue";
-import Fuse, { FuseResultMatch } from "fuse.js";
+import Fuse, {type FuseResultMatch } from "fuse.js";
 import { keys } from "~/gis/keys";
 import {addressFields, surveyFields, taxlotFields} from "~/gis/layer_info";
 
@@ -51,11 +51,12 @@ export const useMappingStore = defineStore('mapping_store', {
             const surveyData = await this.queryLayer(surveyLayer, surveyFields, "1=1");
             const addressData = await this.queryLayer(addressPointLayer, addressFields, "Status ='Current'")
             const taxlotData = await this.queryLayer(taxlotLayer, taxlotFields, "1=1")
-            const searchableList = [surveyData, addressData, taxlotData]
 
-            for (const layers of searchableList) {
-                await this.iterateFeatureSet(layers);
-            }
+
+            await this.iterateFeatureSet(surveyData);
+            await this.iterateFeatureSet(addressData);
+            await this.iterateFeatureSet(taxlotData);
+
             await this.fuseSearchData();
         },
 
@@ -73,14 +74,14 @@ export const useMappingStore = defineStore('mapping_store', {
         },
 
         async iterateFeatureSet(featureSet: FeatureSet) {
-           featureSet.features.forEach((feature) => {
+            featureSet.features.forEach((feature) => {
                 this.featureAttributes.push(feature.attributes);
-              //return feature.attributes
+                //return feature.attributes
             });
             //console.log(this.featureAttributes)
         },
         //
-        async fuseSearchData(){
+        async fuseSearchData() {
             const uniqueClauses = new Set(); // Use a Set to store unique clauses
 
             const fuse = new Fuse(this.featureAttributes, {
@@ -123,7 +124,7 @@ export const useMappingStore = defineStore('mapping_store', {
             this.surveyLayerCheckbox = false
         },
 
-        async surveyLayerCheck(e: any){
+        async surveyLayerCheck(e: any) {
             this.surveyLayerCheckbox = e.target.checked;
             surveyLayer.visible = this.surveyLayerCheckbox;
         },
@@ -134,4 +135,4 @@ export const useMappingStore = defineStore('mapping_store', {
         }
 
     }
-});
+}); // end of store
