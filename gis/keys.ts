@@ -6,5 +6,5 @@ export const keys = [
     "subdivision",
     "pp",
     "full_address2",
-    "maptaxlot"
+    "MAPTAXLOT"
 ]

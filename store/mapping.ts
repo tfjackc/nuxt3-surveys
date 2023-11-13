@@ -5,12 +5,12 @@ import FeatureSet from "@arcgis/core/rest/support/FeatureSet";
 import {
     surveyLayer,
     graphicsLayer,
-    addressPointLayer,
+    addressPointLayer, taxlotLayer,
 } from "~/gis/layers";
 import type {Ref} from "vue";
 import Fuse, { FuseResultMatch } from "fuse.js";
 import { keys } from "~/gis/keys";
-import { addressFields, surveyFields } from "~/gis/layer_info";
+import {addressFields, surveyFields, taxlotFields} from "~/gis/layer_info";
 
 let view: MapView;
 type StringOrArray = string | string[];
@@ -47,11 +47,11 @@ export const useMappingStore = defineStore('mapping_store', {
         },
 
         async onSubmit() {
-            console.log(this.searchedValue)
+
             const surveyData = await this.queryLayer(surveyLayer, surveyFields, "1=1");
             const addressData = await this.queryLayer(addressPointLayer, addressFields, "Status ='Current'")
-
-            const searchableList = [surveyData, addressData]
+            const taxlotData = await this.queryLayer(taxlotLayer, taxlotFields, "1=1")
+            const searchableList = [surveyData, addressData, taxlotData]
 
             for (const layers of searchableList) {
                 await this.iterateFeatureSet(layers);
