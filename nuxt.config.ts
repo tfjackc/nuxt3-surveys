@@ -1,5 +1,11 @@
 export default defineNuxtConfig({
-  devtools: {enabled: true},
+  devtools: {
+    enabled: true,
+
+    timeline: {
+      enabled: true
+    }
+  },
   modules: [
     '@pinia/nuxt',
     'vuetify-nuxt-module'

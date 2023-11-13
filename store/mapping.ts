@@ -53,10 +53,21 @@ export const useMappingStore = defineStore('mapping_store', {
             }
         },
 
+        // async simpleQuery() {
+        //
+        //     let query = surveyLayer.createQuery();
+        //     query.returnGeometry = false;
+        //
+        //     surveyLayer.queryFeatures(query)
+        //         .then(function(response) {
+        //             console.log(response)
+        //         })
+        // },
+
         async initGetData() {
-           await this.surveyData.push(this.queryLayer(surveyLayer, surveyFields, "1=1"));
-           await this.addressData.push(this.queryLayer(addressPointLayer, addressFields, "Status ='Current'"));
-           await this.taxlotData.push(this.queryLayer(taxlotLayer, taxlotFields, "1=1"))
+           await this.surveyData.push(this.queryLayer(surveyLayer, surveyFields, "1=1", false));
+           await this.addressData.push(this.queryLayer(addressPointLayer, addressFields, "Status ='Current'", false));
+           await this.taxlotData.push(this.queryLayer(taxlotLayer, taxlotFields, "1=1", false))
         },
 
         async onSubmit() {
@@ -74,24 +85,29 @@ export const useMappingStore = defineStore('mapping_store', {
                 await this.iterateFeatureSet(surveys)
                 await this.iterateFeatureSet(addresses)
                 await this.iterateFeatureSet(taxlots)
+
+               // await console.log(this.featureAttributes)
                 await this.fuseSearchData();
 
                 //await this.getKeyValues(this.keys_from_search)
-
-                return this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause).then((fset: any) => {
-                    this.createGraphicLayer(fset);
+                if (this.survey_whereClause.length > 0) {
+                    return this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true).then((fset: any) => {
+                      this.createGraphicLayer(fset);
+                        //console.log(fset)
                 });
+            }
+
             } catch (error) {
                 console.log(error)
             }
         },
 
-        async queryLayer(layer: any, out_fields: string[] | Ref<string[]>, where_clause: StringOrArray) {
+        async queryLayer(layer: any, out_fields: string[] | Ref<string[]>, where_clause: StringOrArray, geometry: boolean) {
             const queryLayer = layer.createQuery();
             queryLayer.geometry = layer.geometry;
             queryLayer.where = where_clause;
             queryLayer.outFields = out_fields;
-            queryLayer.returnQueryGeometry = true;
+            queryLayer.returnGeometry = geometry;
             queryLayer.spatialRelationship = "intersects";
             // return layer.queryFeatures(queryLayer).then((fset: any) => {
             //     //this.createGraphicLayer(fset);
@@ -122,7 +138,7 @@ export const useMappingStore = defineStore('mapping_store', {
             const fuse = new Fuse(this.featureAttributes, {
                 keys: keys, // Fields to search in
                 includeMatches: true, // Include match information
-                threshold: 0.4, // Adjust the threshold as needed
+                threshold: 0.3, // Adjust the threshold as needed
             });
 
             // Perform the search using Fuse.js
@@ -142,20 +158,20 @@ export const useMappingStore = defineStore('mapping_store', {
                     const clause = `${this.fuse_key} LIKE '%${this.searchedValue}%'`;
                     // Add the clause to the uniqueClauses set
                     if (survey_keys.includes(this.fuse_key)) {
-                        console.log("Survey Field: " + this.fuse_key)
+                      //  console.log("Survey Field: " + this.fuse_key)
                         uniqueClauses.add(clause);
                         this.survey_whereClause = Array.from(uniqueClauses).join(' OR ');
                     }
-                    else if (address_keys.includes(this.fuse_key)) {
-                        console.log("Address Field: " + this.fuse_key)
-                        uniqueClauses.add(clause);
-                        this.address_whereClause = Array.from(uniqueClauses).join(' OR ');
-                    }
-                    else if (taxlot_keys.includes(this.fuse_key)) {
-                        console.log("Taxlot Field: " + this.fuse_key)
-                        uniqueClauses.add(clause);
-                        this.taxlot_whereClause = Array.from(uniqueClauses).join(' OR ');
-                    }
+                    // else if (address_keys.includes(this.fuse_key)) {
+                    // //    console.log("Address Field: " + this.fuse_key)
+                    //     uniqueClauses.add(clause);
+                    //     this.address_whereClause = Array.from(uniqueClauses).join(' OR ');
+                    // }
+                    // else if (taxlot_keys.includes(this.fuse_key)) {
+                    //    // console.log("Taxlot Field: " + this.fuse_key)
+                    //     uniqueClauses.add(clause);
+                    //     this.taxlot_whereClause = Array.from(uniqueClauses).join(' OR ');
+                    // }
 
                 });
             });
@@ -200,21 +216,6 @@ export const useMappingStore = defineStore('mapping_store', {
                 console.warn('No features found in the query result.');
             }
         },
-        //
-        // async getKeyValues(keys: any) {
-        //     keys.forEach((key: any) => {
-        //         if (survey_keys.includes(key)) {
-        //             console.log("Survey Field: " + key)
-        //             console.log(this.whereClause)
-        //         }
-        //         else if (address_keys.includes(key)) {
-        //             console.log("Address Field: " + key)
-        //         }
-        //         else if (taxlot_keys.includes(key)) {
-        //             console.log("Taxlot Field: " + key)
-        //         }
-        //     })
-        // },
 
         async clearSurveyLayer() {
             surveyLayer.visible = false
