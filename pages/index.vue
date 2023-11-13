@@ -37,7 +37,7 @@
 import Search from "~/components/Search.vue";
 import Map from "~/components/Map.vue";
 import { useMappingStore } from "~/store/mapping";
-// import {storeToRefs} from "pinia";
+import {storeToRefs } from "pinia";
 import { onMounted, ref } from "vue";
 const mapping_store = useMappingStore()
 // const { filteredData, dataLoaded } = storeToRefs(mapping_store)
@@ -56,4 +56,5 @@ const panel = ref([0])
 // onMounted(async() => {
 //   await mapping_store.getData()
 // })
+
 </script>

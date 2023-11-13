@@ -43,4 +43,5 @@ const selection_criteria = ref([
 function required (v: any) {
   return !!v || 'Field is required'
 }
+
 </script>

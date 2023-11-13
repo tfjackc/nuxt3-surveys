@@ -15,4 +15,8 @@ onMounted(async () => {
     await app.createMap(mapDiv.value!);
     await app.addLayerToMap(surveyLayer);
 });
+onServerPrefetch(async () => {
+  // ✅ this will work
+  await app.getData()
+})
 </script>
