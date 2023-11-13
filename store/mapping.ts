@@ -86,7 +86,7 @@ export const useMappingStore = defineStore('mapping_store', {
             const fuse = new Fuse(this.featureAttributes, {
                 keys: keys, // Fields to search in
                 includeMatches: true, // Include match information
-                threshold: 0.0, // Adjust the threshold as needed
+                threshold: 0.4, // Adjust the threshold as needed
             });
 
             // Perform the search using Fuse.js
