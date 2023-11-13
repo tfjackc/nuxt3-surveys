@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import { useMappingStore } from "~/store/mapping";
 import { storeToRefs } from "pinia";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 const mapping_store = useMappingStore()
 const { form, loading, searchedValue } = storeToRefs(mapping_store)
 const selection_criteria = ref([
@@ -40,7 +40,6 @@ const selection_criteria = ref([
   'Prepared For',
   'Prepared By'
 ])
-
 function required (v: any) {
   return !!v || 'Field is required'
 }

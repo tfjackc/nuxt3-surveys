@@ -31,6 +31,9 @@ export const useMappingStore = defineStore('mapping_store', {
         dataLoaded: false as boolean,
         surveyFields: [] as string[] | Ref<string[]>,
         layerFields: [] as string[],
+        surveyData: [] as any,
+        addressData: [] as any,
+        taxlotData: [] as any
     }),
 
     actions: {
@@ -46,16 +49,17 @@ export const useMappingStore = defineStore('mapping_store', {
             }
         },
 
+        async getData() {
+            this.surveyData = await this.queryLayer(surveyLayer, surveyFields, "1=1");
+            this.addressData = await this.queryLayer(addressPointLayer, addressFields, "Status ='Current'")
+            this.taxlotData = await this.queryLayer(taxlotLayer, taxlotFields, "1=1")
+        },
+
         async onSubmit() {
 
-            const surveyData = await this.queryLayer(surveyLayer, surveyFields, "1=1");
-            const addressData = await this.queryLayer(addressPointLayer, addressFields, "Status ='Current'")
-            const taxlotData = await this.queryLayer(taxlotLayer, taxlotFields, "1=1")
-
-
-            await this.iterateFeatureSet(surveyData);
-            await this.iterateFeatureSet(addressData);
-            await this.iterateFeatureSet(taxlotData);
+            await this.iterateFeatureSet(this.surveyData);
+            await this.iterateFeatureSet(this.addressData);
+            await this.iterateFeatureSet(this.taxlotData);
 
             await this.fuseSearchData();
         },
