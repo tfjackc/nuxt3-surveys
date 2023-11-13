@@ -12,9 +12,13 @@ const mapDiv = ref<HTMLDivElement>()
 //const { surveyFields } = storeToRefs(app)
 
 
-onMounted(async() => {
-  await app.createMap(mapDiv.value!)
-  await app.addLayerToMap(surveyLayer)
-  await app.queryLayer(surveyLayer, ["cs","image","rec_y","prepared_for","trsqq","prepared_by","subdivision","type","identification","pp"], "1=1");
-})
+onMounted(async () => {
+
+    await app.createMap(mapDiv.value!);
+    await app.addLayerToMap(surveyLayer);
+
+});
+
+
+
 </script>

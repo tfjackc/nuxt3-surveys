@@ -1,4 +1,4 @@
-export const keys = [
+export const surveyFields = [
     "cs",
     "image",
     "rec_y",
@@ -8,7 +8,14 @@ export const keys = [
     "subdivision",
     "type",
     "identification",
-    "pp",
+    "pp"
+]
+
+export const addressFields = [
     "full_address2",
     "maptaxlot"
+]
+
+export const taxlotFields = [
+    "MAPTAXLOT"
 ]
