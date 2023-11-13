@@ -105,7 +105,6 @@ export const useMappingStore = defineStore('mapping_store', {
                     const clause = `${this.fuse_key} LIKE '%${this.searchedValue}%'`;
                     // Add the clause to the uniqueClauses set
                     uniqueClauses.add(clause);
-                    console.log(`${this.fuse_key}: ${this.fuse_value}`)
                 });
             });
 
