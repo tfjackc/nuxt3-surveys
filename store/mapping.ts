@@ -108,6 +108,15 @@ export const useMappingStore = defineStore('mapping_store', {
                     })
                 })
             }
+            else if (this.default_search == 'Maptaxlots') {
+                this.taxlot_whereClause = `MAPTAXLOT LIKE '%${this.searchedValue}%'`;
+                await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: any) => {
+                    // query survey by intersecting geometry from fset.features
+                    this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: any) => {
+                        this.createGraphicLayer(response);
+                    })
+                })
+            }
         },
 
         async queryLayer(layer: any, out_fields: string[] | Ref<string[]>, where_clause: StringOrArray, geometry: boolean, queryGeometry: any = layer.geometry) {
