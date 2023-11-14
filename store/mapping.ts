@@ -21,8 +21,6 @@ export const useMappingStore = defineStore('mapping_store', {
         featureAttributes: [] as any[],
         filteredData: [] as any[],
         searchCount: 0 as number,
-        form: false as boolean,
-        loading: false as boolean,
         searchedValue: '' as string,
         survey_whereClause: '' as StringOrArray,
         address_whereClause: '' as StringOrArray,
@@ -37,7 +35,23 @@ export const useMappingStore = defineStore('mapping_store', {
         layerFields: [] as string[],
         surveyData: [] as any,
         addressData: [] as any,
-        taxlotData: [] as any
+        taxlotData: [] as any,
+        default_search: 'Surveys' as string,
+        layer_choices: [
+            'Surveys',
+            'Addresses',
+            'Maptaxlots'
+        ],
+        search_choices: [
+            'Survey Numbers',
+            'Partition Plats',
+            'Township/Ranges',
+            'Subdivisions',
+            'Prepared For',
+            'Prepared By'
+        ],
+        form: false as boolean,
+        loading: false as boolean,
     }),
 
     actions: {
@@ -66,55 +80,47 @@ export const useMappingStore = defineStore('mapping_store', {
 
         async initGetData() {
            await this.surveyData.push(this.queryLayer(surveyLayer, surveyFields, "1=1", false));
-           await this.addressData.push(this.queryLayer(addressPointLayer, addressFields, "Status ='Current'", false));
-           await this.taxlotData.push(this.queryLayer(taxlotLayer, taxlotFields, "1=1", false))
+           // await this.addressData.push(this.queryLayer(addressPointLayer, addressFields, "Status ='Current'", false));
+           // await this.taxlotData.push(this.queryLayer(taxlotLayer, taxlotFields, "1=1", false))
         },
 
         async onSubmit() {
-            try {
-                graphicsLayer.graphics.removeAll()
-                view.graphics.removeAll()
+            graphicsLayer.graphics.removeAll()
+            view.graphics.removeAll()
 
-                this.featureAttributes = [];
-                const [surveys, addresses, taxlots] =
-                    await Promise.all([
-                        this.openPromise(this.surveyData),
-                        this.openPromise(this.addressData),
-                        this.openPromise(this.taxlotData),
-                    ]);
-                await this.iterateFeatureSet(surveys)
-                await this.iterateFeatureSet(addresses)
-                await this.iterateFeatureSet(taxlots)
+            this.featureAttributes = [];
+            const surveys = await this.openPromise(this.surveyData)
+            await this.iterateFeatureSet(surveys)
 
-               // await console.log(this.featureAttributes)
-                await this.fuseSearchData();
+            await this.fuseSearchData()
 
-                //await this.getKeyValues(this.keys_from_search)
-                if (this.survey_whereClause.length > 0) {
-                    return this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true).then((fset: any) => {
-                      this.createGraphicLayer(fset);
-                        //console.log(fset)
-                });
+            if (this.default_search == 'Surveys') {
+                await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true).then((fset: any) => {
+                    this.createGraphicLayer(fset);
+                })
             }
-
-            } catch (error) {
-                console.log(error)
+            else if (this.default_search == 'Addresses') {
+                this.address_whereClause = `full_address2 LIKE '%${this.searchedValue}%'`;
+                await this.queryLayer(addressPointLayer, addressFields, this.address_whereClause, true).then((fset: any) => {
+                    // query survey by intersecting geometry from fset.features
+                    this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: any) => {
+                        this.createGraphicLayer(response);
+                    })
+                })
             }
         },
 
-        async queryLayer(layer: any, out_fields: string[] | Ref<string[]>, where_clause: StringOrArray, geometry: boolean) {
+        async queryLayer(layer: any, out_fields: string[] | Ref<string[]>, where_clause: StringOrArray, geometry: boolean, queryGeometry: any = layer.geometry) {
             const queryLayer = layer.createQuery();
-            queryLayer.geometry = layer.geometry;
+            queryLayer.geometry = queryGeometry;
             queryLayer.where = where_clause;
             queryLayer.outFields = out_fields;
             queryLayer.returnGeometry = geometry;
             queryLayer.spatialRelationship = "intersects";
-            // return layer.queryFeatures(queryLayer).then((fset: any) => {
-            //     //this.createGraphicLayer(fset);
-            //     featureSetData = fset;
-            // });
+
             return layer.queryFeatures(queryLayer);
         },
+
 
         async openPromise(data: any) {
             return Promise.all(data);
@@ -128,13 +134,13 @@ export const useMappingStore = defineStore('mapping_store', {
                 this.featureAttributes.push(feature.attributes);
             });
         },
-        //
+
         async fuseSearchData() {
             this.survey_whereClause = '';
             this.address_whereClause = '';
             this.taxlot_whereClause = '';
-            const uniqueClauses = new Set(); // Use a Set to store unique clauses
-            //const uniqueKeys = new Set(); // Use a Set to store unique keys
+            const survey_uniqueClauses = new Set(); // Use a Set to store unique clauses
+
             const fuse = new Fuse(this.featureAttributes, {
                 keys: keys, // Fields to search in
                 includeMatches: true, // Include match information
@@ -153,38 +159,17 @@ export const useMappingStore = defineStore('mapping_store', {
                 matches.forEach((match: any) => {
                     this.fuse_key = match.key; // Key that matched the search query
                     this.fuse_value = match.value; // Value that matched the search query
-                   // this.keys_from_search = uniqueKeys.add(this.fuse_key)
-                    // You can use key and value as needed in your code
+
                     const clause = `${this.fuse_key} LIKE '%${this.searchedValue}%'`;
                     // Add the clause to the uniqueClauses set
-                    if (survey_keys.includes(this.fuse_key)) {
-                      //  console.log("Survey Field: " + this.fuse_key)
-                        uniqueClauses.add(clause);
-                        this.survey_whereClause = Array.from(uniqueClauses).join(' OR ');
-                    }
-                    // else if (address_keys.includes(this.fuse_key)) {
-                    // //    console.log("Address Field: " + this.fuse_key)
-                    //     uniqueClauses.add(clause);
-                    //     this.address_whereClause = Array.from(uniqueClauses).join(' OR ');
-                    // }
-                    // else if (taxlot_keys.includes(this.fuse_key)) {
-                    //    // console.log("Taxlot Field: " + this.fuse_key)
-                    //     uniqueClauses.add(clause);
-                    //     this.taxlot_whereClause = Array.from(uniqueClauses).join(' OR ');
-                    // }
+                    if (this.default_search == 'Surveys') {
 
+                        survey_uniqueClauses.add(clause);
+                        this.survey_whereClause = Array.from(survey_uniqueClauses).join(' OR ');
+                        console.log('Generated survey WHERE clause:', this.survey_whereClause);
+                    }
                 });
             });
-            // Convert the uniqueClauses set to an array and join them with "OR"
-            // this.whereClause = Array.from(uniqueClauses).join(' OR ');
-            // if (this.searchCount > 0) {
-            //     this.searchedLayerCheckbox = true;
-            //     this.dataLoaded = true
-            // }
-            // Log the generated WHERE clause for debugging
-            console.log('Generated survey WHERE clause:', this.survey_whereClause);
-            console.log('Generated taxlot WHERE clause:', this.taxlot_whereClause);
-            console.log('Generated address WHERE clause:', this.address_whereClause);
         },
 
         async createGraphicLayer(fset: any) {
