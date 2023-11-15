@@ -100,15 +100,18 @@ export const useMappingStore = defineStore('mapping_store', {
             } else if (this.default_search == 'Addresses') {
                 this.address_whereClause = `full_address2 LIKE '%${this.searchedValue}%'`;
                 await this.queryLayer(addressPointLayer, addressFields, this.address_whereClause, true).then((fset: FeatureSet) => {
-                    // query survey by intersecting geometry from fset.features
-                    this.surveyQueryIntersect(fset)
+                 //   query survey by intersecting geometry from fset.features
+                    console.log(fset)
+                    if (fset.features.length > 0) {
+                        this.surveyQueryIntersect(fset)
+                    }
+                    else {
+                        alert('No features found in the query result.')
+                    }
                 })
             } else if (this.default_search == 'Maptaxlots') {
                 this.taxlot_whereClause = `MAPTAXLOT LIKE '%${this.searchedValue}%'`;
-                await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: FeatureSet) => {
-                    // query survey by intersecting geometry from fset.features
-                    this.surveyQueryIntersect(fset)
-                })
+                await this.taxlotQuery()
             }
         },
 
@@ -145,19 +148,32 @@ export const useMappingStore = defineStore('mapping_store', {
         async surveyQueryIntersect(fset: FeatureSet) {
 
             try{
-                if (this.survey_whereClause != '') {
-            await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
-                this.createGraphicLayer(response);
+              //  if (this.survey_whereClause != '') {
+                this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
+                await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
+                    this.createGraphicLayer(response);
             })
-                } else {
-                    alert('No features found in the query result.')
-                }
+              //  } else {
+              //      alert('No features found in the query result.')
+              //  }
             }
             catch (error) {
                 console.log(error)
                 alert('No features found in the query result.')
             }
 
+        },
+
+        async taxlotQuery() {
+            try{
+            await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: FeatureSet) => {
+                // query survey by intersecting geometry from fset.features
+                this.surveyQueryIntersect(fset)
+            })
+            } catch (error) {
+                console.log(error)
+                alert('No features found in the query result.')
+            }
         },
 
         async openPromise(data: any) {
