@@ -4,7 +4,13 @@ import MapView from '@arcgis/core/views/MapView';
 import {
     surveyLayer,
     graphicsLayer,
-    addressPointLayer, taxlotLayer, simpleFillSymbol, surveyTemplate,
+    addressPointLayer,
+    taxlotLayer,
+    simpleFillSymbol,
+    surveyTemplate,
+    highlightLayer,
+    highlightFillSymbol,
+    taxlotTemplate,
 } from "~/gis/layers";
 import type {Ref} from "vue";
 import Fuse, { type FuseResultMatch } from "fuse.js";
@@ -80,6 +86,7 @@ export const useMappingStore = defineStore('mapping_store', {
         async onSubmit() {
 
             graphicsLayer.graphics.removeAll()
+            highlightLayer.graphics.removeAll()
             view.graphics.removeAll()
 
             this.featureAttributes = [];
@@ -91,6 +98,7 @@ export const useMappingStore = defineStore('mapping_store', {
             if (this.default_search == 'Surveys') {
 
                 if (this.survey_filter.length > 0) {
+                    this.searchCount += 1;
                     this.survey_whereClause = `${this.survey_filter} LIKE '%${this.searchedValue}%'`;
                     await this.surveyQuery()
                 } else {
@@ -112,12 +120,14 @@ export const useMappingStore = defineStore('mapping_store', {
                         this.taxlot_whereClause = Array.from(taxlot_uniqueClauses).join(' OR ');
 
                     });
-                    console.log(this.taxlot_whereClause)
+
                     if (fset.features.length > 0) {
+                        this.searchCount += 1;
                         //this.taxlotQuery(fset)
                         try{
                             this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
                                 // query survey by intersecting geometry from fset.features
+                                console.log(response)
                                 this.surveyQueryIntersect(response)
                             })
                         } catch (error) {
@@ -133,10 +143,27 @@ export const useMappingStore = defineStore('mapping_store', {
             } else if (this.default_search == 'Maptaxlots') {
                 this.taxlot_whereClause = `MAPTAXLOT LIKE '%${this.searchedValue}%'`;
                 //await this.taxlotQuery()
+
                 try{
                     await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: FeatureSet) => {
+
                         // query survey by intersecting geometry from fset.features
+                        fset.features.map(async (layer: any) => {
+                            this.searchCount += 1;
+                            const taxlot_graphic = new Graphic({
+                                geometry: layer.geometry,
+                                attributes: layer.attributes,
+                                symbol: highlightFillSymbol,
+                                popupTemplate: taxlotTemplate
+                            });
+
+                            highlightLayer.graphics.add(taxlot_graphic);
+                            view.map.add(highlightLayer);
+
+                        });
+
                         this.surveyQueryIntersect(fset)
+
                     })
                 } catch (error) {
                     console.log(error)
@@ -269,10 +296,10 @@ export const useMappingStore = defineStore('mapping_store', {
                         popupTemplate: surveyTemplate
                     });
 
-                    graphicsLayer.graphics.push(graphic);
+                    graphicsLayer.graphics.add(graphic);
                     view.map.add(graphicsLayer);
                     this.searchedLayerCheckbox = true;
-                    
+
                 });
 
                 const graphicsExtent = fset.features.reduce((extent: any, survey: any) => {

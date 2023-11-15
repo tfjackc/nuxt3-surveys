@@ -51,6 +51,11 @@ const taxlotRenderer = new SimpleRenderer({
     symbol: simpleTaxlotRenderer,
 });
 
+export const taxlotTemplate = {
+    title: "{MAPTAXLOT}",
+    content: "Owner Name: {OWNER_NAME} <br /> Zone: {ZONE} <br /> Account: {ACCOUNT} <br /> PATS Link: <a href={PATS_LINK}>PATS Link</a> <br /> Tax Map Link: <a href={TAX_MAP_LINK}>Tax Map Link</a> <br /> Tax Card Link: <a href={TAX_CARD_LINK}>Tax Card Link</a>",
+}
+
 export const landGroup = new MapImageLayer({
     url: "https://geo.co.crook.or.us/server/rest/services/publicApp/landGroup/MapServer",
     sublayers: [
@@ -62,10 +67,7 @@ export const landGroup = new MapImageLayer({
             id: 1,
             renderer: taxlotRenderer,
             visible: true,
-            popupTemplate: {
-                title: "{MAPTAXLOT}",
-                content: "Owner Name: {OWNER_NAME} <br /> Zone: {ZONE} <br /> Account: {ACCOUNT} <br /> PATS Link: <a href={PATS_LINK}>PATS Link</a> <br /> Tax Map Link: <a href={TAX_MAP_LINK}>Tax Map Link</a> <br /> Tax Card Link: <a href={TAX_CARD_LINK}>Tax Card Link</a>",
-            },
+            popupTemplate: taxlotTemplate,
         },
         {
             id: 3,
@@ -110,17 +112,18 @@ export const simpleFillSymbol = new SimpleFillSymbol({
     style: "solid",
 });
 
-export const highlightGraphic = new GraphicsLayer({});
-export const highlightSymbol = new SimpleFillSymbol({
-    color: new Color([255,255,0,0.5]),
+export const highlightLayer = new GraphicsLayer({});
+
+export const highlightFillSymbol = new SimpleFillSymbol({
+    color: new Color([0,32,194,0]),
     outline: new SimpleLineSymbol({
         cap: "round",
-        color: new Color([255,255,0,1]),
+        color: new Color([0,32,194,1]),
         join: "round",
         miterLimit: 1,
         style: "solid",
         width: 3
     }),
-    style: "solid",
+    style: "solid"
 });
 // -------------- graphics -----------------
