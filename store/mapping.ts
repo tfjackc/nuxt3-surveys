@@ -28,7 +28,7 @@ export const useMappingStore = defineStore('mapping_store', {
         filteredData: [] as any[],
         searchCount: 0 as number,
         searchedValue: '' as string,
-        survey_whereClause: '' as StringOrArray,
+        survey_whereClause: "cs NOT IN ('2787','2424','1391','4188')" as StringOrArray,
         address_whereClause: '' as StringOrArray,
         taxlot_whereClause: '' as StringOrArray,
         surveyLayerCheckbox: true,
@@ -78,7 +78,7 @@ export const useMappingStore = defineStore('mapping_store', {
         },
 
         async initGetData() {
-            await this.surveyData.push(this.queryLayer(surveyLayer, surveyFields, "cs NOT IN ('2787','2424','1391','4188')", false));
+            await this.surveyData.push(this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, false));
             // await this.addressData.push(this.queryLayer(addressPointLayer, addressFields, "Status ='Current'", false));
             // await this.taxlotData.push(this.queryLayer(taxlotLayer, taxlotFields, "1=1", false))
         },
@@ -125,9 +125,24 @@ export const useMappingStore = defineStore('mapping_store', {
                         this.searchCount += 1;
                         //this.taxlotQuery(fset)
                         try{
-                            this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
+                            this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features.geometry).then((response: FeatureSet) => {
                                 // query survey by intersecting geometry from fset.features
-                                console.log(response)
+                                // query survey by intersecting geometry from fset.features
+                                response.features.map(async (layer: any) => {
+                                    this.searchCount += 1;
+                                    const taxlot_graphic = new Graphic({
+                                        geometry: layer.geometry,
+                                        attributes: layer.attributes,
+                                        symbol: highlightFillSymbol,
+                                        popupTemplate: taxlotTemplate
+                                    });
+
+                                    highlightLayer.graphics.add(taxlot_graphic);
+                                    view.map.add(highlightLayer);
+
+                                });
+
+
                                 this.surveyQueryIntersect(response)
                             })
                         } catch (error) {
@@ -206,8 +221,8 @@ export const useMappingStore = defineStore('mapping_store', {
 
             try{
               //  if (this.survey_whereClause != '') {
-                this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
-                await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
+                //this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
+                await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features.geometry).then((response: FeatureSet) => {
                     this.createGraphicLayer(response);
             })
               //  } else {
@@ -220,18 +235,6 @@ export const useMappingStore = defineStore('mapping_store', {
             }
 
         },
-
-        // async taxlotQuery(fset) {
-        //     try{
-        //     await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features[0].geometry).then((fset: FeatureSet) => {
-        //         // query survey by intersecting geometry from fset.features
-        //         this.surveyQueryIntersect(fset)
-        //     })
-        //     } catch (error) {
-        //         console.log(error)
-        //         alert('No features found in the query result.')
-        //     }
-        // },
 
         async openPromise(data: any) {
             return Promise.all(data);
@@ -283,6 +286,7 @@ export const useMappingStore = defineStore('mapping_store', {
                 });
             });
         },
+
 
         async createGraphicLayer(fset: any) {
             try {

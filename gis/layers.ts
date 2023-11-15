@@ -122,7 +122,7 @@ export const highlightFillSymbol = new SimpleFillSymbol({
         join: "round",
         miterLimit: 1,
         style: "solid",
-        width: 3
+        width: 2
     }),
     style: "solid"
 });
