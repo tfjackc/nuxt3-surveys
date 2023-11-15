@@ -13,13 +13,16 @@
   </v-list-item>
     <v-list-item>
       <v-select
-          v-if="default_search === 'Surveys'"
           label="Filter Search Criteria"
-          :items="search_choices"
+          v-if="default_search === 'Surveys'"
+          v-model="survey_filter"
+          :items="survey_filter_choices.items"
+          item-title="field"
+          item-value="value"
           variant="solo-filled"
           density="comfortable"
-          >
-      </v-select>
+      ></v-select>
+
     </v-list-item>
     <v-list-item>
       <v-form v-model="form"
@@ -53,9 +56,10 @@
 import { storeToRefs } from "pinia";
 import { useMappingStore } from "~/store/mapping";
 const mapping_store = useMappingStore()
-const { form, loading, layer_choices, search_choices, default_search } = storeToRefs(mapping_store)
+const { form, loading, layer_choices, survey_filter_choices, survey_filter ,default_search } = storeToRefs(mapping_store)
 const { searchedValue } = storeToRefs(mapping_store)
 function required (v: any) {
   return !!v || 'Field is required'
 }
+
 </script>

@@ -5,7 +5,6 @@
 <!-- :class="{ 'isData' : dataLoaded, 'noData' : !dataLoaded }">-->
         <v-col cols="4">
           <v-sheet rounded="lg">
-            <v-divider class="my-2"></v-divider>
             <v-list rounded="lg">
               <Search />
               <v-divider class="my-2"></v-divider>

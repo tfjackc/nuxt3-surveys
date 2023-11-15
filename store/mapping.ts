@@ -11,6 +11,7 @@ import Fuse, { type FuseResultMatch } from "fuse.js";
 import { address_keys, keys, survey_keys, taxlot_keys } from "~/gis/keys";
 import { addressFields, surveyFields, taxlotFields } from "~/gis/layer_info";
 import Graphic from "@arcgis/core/Graphic";
+import FeatureSet from "@arcgis/core/rest/support/FeatureSet";
 
 let view: MapView;
 type StringOrArray = string | string[];
@@ -41,14 +42,17 @@ export const useMappingStore = defineStore('mapping_store', {
             'Addresses',
             'Maptaxlots'
         ],
-        search_choices: [
-            'Survey Numbers',
-            'Partition Plats',
-            'Township/Ranges',
-            'Subdivisions',
-            'Prepared For',
-            'Prepared By'
-        ],
+        survey_filter: [] as string[],
+        survey_filter_choices: {
+          items: [
+                  {field: 'Survey Numbers', value: 'cs'},
+                  {field: 'Partition Plats', value: 'pp'},
+                  {field: 'Township/Ranges', value: 'trsqq'},
+                  {field: 'Subdivisions', value: 'subdivision'},
+                  {field: 'Prepared For', value: 'prepared_for'},
+                  {field: 'Prepared By', value: 'prepared_by'},
+          ]
+        },
         form: false as boolean,
         loading: false as boolean,
     }),
@@ -66,24 +70,14 @@ export const useMappingStore = defineStore('mapping_store', {
             }
         },
 
-        // async simpleQuery() {
-        //
-        //     let query = surveyLayer.createQuery();
-        //     query.returnGeometry = false;
-        //
-        //     surveyLayer.queryFeatures(query)
-        //         .then(function(response) {
-        //             console.log(response)
-        //         })
-        // },
-
         async initGetData() {
-           await this.surveyData.push(this.queryLayer(surveyLayer, surveyFields, "1=1", false));
-           // await this.addressData.push(this.queryLayer(addressPointLayer, addressFields, "Status ='Current'", false));
-           // await this.taxlotData.push(this.queryLayer(taxlotLayer, taxlotFields, "1=1", false))
+            await this.surveyData.push(this.queryLayer(surveyLayer, surveyFields, "cs NOT IN ('2787','2424','1391','4188')", false));
+            // await this.addressData.push(this.queryLayer(addressPointLayer, addressFields, "Status ='Current'", false));
+            // await this.taxlotData.push(this.queryLayer(taxlotLayer, taxlotFields, "1=1", false))
         },
 
         async onSubmit() {
+            console.log(this.survey_filter.length)
             graphicsLayer.graphics.removeAll()
             view.graphics.removeAll()
 
@@ -94,26 +88,25 @@ export const useMappingStore = defineStore('mapping_store', {
             await this.fuseSearchData()
 
             if (this.default_search == 'Surveys') {
-                await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true).then((fset: any) => {
-                    this.createGraphicLayer(fset);
-                })
-            }
-            else if (this.default_search == 'Addresses') {
+
+                if (this.survey_filter.length > 0) {
+                    this.survey_whereClause = `${this.survey_filter} LIKE '%${this.searchedValue}%'`;
+                    await this.surveyQuery()
+                } else {
+                    await this.surveyQuery()
+                }
+
+            } else if (this.default_search == 'Addresses') {
                 this.address_whereClause = `full_address2 LIKE '%${this.searchedValue}%'`;
-                await this.queryLayer(addressPointLayer, addressFields, this.address_whereClause, true).then((fset: any) => {
+                await this.queryLayer(addressPointLayer, addressFields, this.address_whereClause, true).then((fset: FeatureSet) => {
                     // query survey by intersecting geometry from fset.features
-                    this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: any) => {
-                        this.createGraphicLayer(response);
-                    })
+                    this.surveyQueryIntersect(fset)
                 })
-            }
-            else if (this.default_search == 'Maptaxlots') {
+            } else if (this.default_search == 'Maptaxlots') {
                 this.taxlot_whereClause = `MAPTAXLOT LIKE '%${this.searchedValue}%'`;
-                await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: any) => {
+                await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: FeatureSet) => {
                     // query survey by intersecting geometry from fset.features
-                    this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: any) => {
-                        this.createGraphicLayer(response);
-                    })
+                    this.surveyQueryIntersect(fset)
                 })
             }
         },
@@ -129,6 +122,17 @@ export const useMappingStore = defineStore('mapping_store', {
             return layer.queryFeatures(queryLayer);
         },
 
+        async surveyQuery() {
+            await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true).then((fset: any) => {
+                this.createGraphicLayer(fset);
+            })
+        },
+
+        async surveyQueryIntersect(fset: FeatureSet) {
+            await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
+                this.createGraphicLayer(response);
+            })
+        },
 
         async openPromise(data: any) {
             return Promise.all(data);
@@ -174,7 +178,7 @@ export const useMappingStore = defineStore('mapping_store', {
 
                         survey_uniqueClauses.add(clause);
                         this.survey_whereClause = Array.from(survey_uniqueClauses).join(' OR ');
-                        console.log('Generated survey WHERE clause:', this.survey_whereClause);
+                        //    console.log('Generated survey WHERE clause:', this.survey_whereClause);
                     }
                 });
             });
@@ -224,7 +228,7 @@ export const useMappingStore = defineStore('mapping_store', {
         async searchedLayerCheck(e: any) {
             this.searchedLayerCheckbox = e.target.checked;
             graphicsLayer.visible = this.searchedLayerCheckbox;
-        }
+        },
 
     }
 }); // end of store
