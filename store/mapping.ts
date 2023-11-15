@@ -45,6 +45,7 @@ export const useMappingStore = defineStore('mapping_store', {
         survey_filter: [] as string[],
         survey_filter_choices: {
           items: [
+                  {field: 'Search All', value: []},
                   {field: 'Survey Numbers', value: 'cs'},
                   {field: 'Partition Plats', value: 'pp'},
                   {field: 'Township/Ranges', value: 'trsqq'},
@@ -123,15 +124,40 @@ export const useMappingStore = defineStore('mapping_store', {
         },
 
         async surveyQuery() {
-            await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true).then((fset: any) => {
-                this.createGraphicLayer(fset);
-            })
+
+            try{
+                if (this.survey_whereClause != '') {
+                await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true).then((fset: any) => {
+                    this.createGraphicLayer(fset);
+                })
+                } else {
+                    alert('No features found in the query result.')
+                }
+            }
+            catch (error) {
+                console.log(error)
+                alert('No features found in the query result.')
+            }
+
+
         },
 
         async surveyQueryIntersect(fset: FeatureSet) {
+
+            try{
+                if (this.survey_whereClause != '') {
             await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
                 this.createGraphicLayer(response);
             })
+                } else {
+                    alert('No features found in the query result.')
+                }
+            }
+            catch (error) {
+                console.log(error)
+                alert('No features found in the query result.')
+            }
+
         },
 
         async openPromise(data: any) {
@@ -185,7 +211,8 @@ export const useMappingStore = defineStore('mapping_store', {
         },
 
         async createGraphicLayer(fset: any) {
-            await this.clearSurveyLayer();
+            try {
+
             if (fset && fset.features) {
                 fset.features.map(async (layer: any) => {
                     const graphic = new Graphic({
@@ -210,8 +237,15 @@ export const useMappingStore = defineStore('mapping_store', {
                 view.goTo(graphicsExtent).then(() => {
                     console.log("view.GoTo Searched Surveys");
                 });
+
+                await this.clearSurveyLayer();
+
             } else {
                 console.warn('No features found in the query result.');
+            }
+            } catch (error) {
+                console.log(error)
+                alert('No features found in the query result.')
             }
         },
 
