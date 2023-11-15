@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 import { initialize } from "~/gis/map";
 import MapView from '@arcgis/core/views/MapView';
-import FeatureSet from "@arcgis/core/rest/support/FeatureSet";
 import {
     surveyLayer,
     graphicsLayer,
@@ -9,7 +8,7 @@ import {
 } from "~/gis/layers";
 import type {Ref} from "vue";
 import Fuse, { type FuseResultMatch } from "fuse.js";
-import {address_keys, keys, survey_keys, taxlot_keys} from "~/gis/keys";
+import { address_keys, keys, survey_keys, taxlot_keys } from "~/gis/keys";
 import { addressFields, surveyFields, taxlotFields } from "~/gis/layer_info";
 import Graphic from "@arcgis/core/Graphic";
 
@@ -194,6 +193,7 @@ export const useMappingStore = defineStore('mapping_store', {
 
                     graphicsLayer.graphics.push(graphic);
                     view.map.add(graphicsLayer);
+                    this.searchedLayerCheckbox = true;
 
                     return layer.attributes;
                 });

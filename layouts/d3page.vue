@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  $END$
+<slot />
 </template>
 
 <style scoped>

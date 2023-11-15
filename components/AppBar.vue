@@ -7,7 +7,6 @@
     <h2>Survey Research Tool</h2>
     <v-btn href="https://geo.co.crook.or.us/surveys_legacy/" color="primary" size="small" variant="elevated">Legacy Survey Search Tool</v-btn>
     <v-spacer></v-spacer>
-
     <Disclaimer />
   </v-app-bar>
 </v-app>
@@ -15,6 +14,3 @@
 <script lang="ts" setup>
 import Disclaimer from "~/components/Disclaimer.vue";
 </script>
-<style>
-
-</style>

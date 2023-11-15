@@ -108,7 +108,7 @@ export const bufferGraphic = new Graphic({
 });
 
 export const simpleFillSymbol = new SimpleFillSymbol({
-    color: new Color([153,193,241,0.4]),
+    color: new Color([203,236,247,0.4]),
     outline: new SimpleLineSymbol({
         cap: "round",
         color: new Color([119,118,123,1]),

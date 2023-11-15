@@ -7,6 +7,7 @@
               v-model="default_search"
               :items="layer_choices"
               variant="solo-filled"
+              density="comfortable"
               >
     </v-select>
   </v-list-item>
@@ -15,11 +16,14 @@
           v-if="default_search === 'Surveys'"
           label="Filter Search Criteria"
           :items="search_choices"
-          variant="solo-filled">
+          variant="solo-filled"
+          density="comfortable"
+          >
       </v-select>
     </v-list-item>
     <v-list-item>
       <v-form v-model="form"
+              density="comfortable"
               @submit.prevent="mapping_store.onSubmit()">
         <v-text-field
           v-model="searchedValue"
@@ -35,7 +39,9 @@
           color="success"
           size="large"
           type="submit"
-          variant="elevated">
+          variant="elevated"
+          density="comfortable"
+          >
           Submit
         </v-btn>
       </v-form>
@@ -52,8 +58,4 @@ const { searchedValue } = storeToRefs(mapping_store)
 function required (v: any) {
   return !!v || 'Field is required'
 }
-// function layerSelected() {
-//
-// }
-
 </script>
