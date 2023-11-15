@@ -77,7 +77,7 @@ export const useMappingStore = defineStore('mapping_store', {
         },
 
         async onSubmit() {
-            console.log(this.survey_filter.length)
+
             graphicsLayer.graphics.removeAll()
             view.graphics.removeAll()
 
