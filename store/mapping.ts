@@ -100,10 +100,31 @@ export const useMappingStore = defineStore('mapping_store', {
             } else if (this.default_search == 'Addresses') {
                 this.address_whereClause = `full_address2 LIKE '%${this.searchedValue}%'`;
                 await this.queryLayer(addressPointLayer, addressFields, this.address_whereClause, true).then((fset: FeatureSet) => {
-                 //   query survey by intersecting geometry from fset.features
-                    console.log(fset)
+                    //   query survey by intersecting geometry from fset.features
+                    const taxlot_uniqueClauses = new Set();
+                    fset.features.forEach((feature: any) => {
+                        console.log(feature.attributes.maptaxlot);
+                        // Use a Set to store unique clauses
+
+                        const clause = `MAPTAXLOT = '${feature.attributes.maptaxlot}'`;
+                        // Add the clause to the uniqueClauses set
+                        taxlot_uniqueClauses.add(clause);
+                        this.taxlot_whereClause = Array.from(taxlot_uniqueClauses).join(' OR ');
+
+                    });
+                    console.log(this.taxlot_whereClause)
                     if (fset.features.length > 0) {
-                        this.surveyQueryIntersect(fset)
+                        //this.taxlotQuery(fset)
+                        try{
+                            this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
+                                // query survey by intersecting geometry from fset.features
+                                this.surveyQueryIntersect(response)
+                            })
+                        } catch (error) {
+                            console.log(error)
+                            alert('No features found in the query result.')
+                        }
+
                     }
                     else {
                         alert('No features found in the query result.')
@@ -111,7 +132,16 @@ export const useMappingStore = defineStore('mapping_store', {
                 })
             } else if (this.default_search == 'Maptaxlots') {
                 this.taxlot_whereClause = `MAPTAXLOT LIKE '%${this.searchedValue}%'`;
-                await this.taxlotQuery()
+                //await this.taxlotQuery()
+                try{
+                    await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: FeatureSet) => {
+                        // query survey by intersecting geometry from fset.features
+                        this.surveyQueryIntersect(fset)
+                    })
+                } catch (error) {
+                    console.log(error)
+                    alert('No features found in the query result.')
+                }
             }
         },
 
@@ -164,17 +194,17 @@ export const useMappingStore = defineStore('mapping_store', {
 
         },
 
-        async taxlotQuery() {
-            try{
-            await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: FeatureSet) => {
-                // query survey by intersecting geometry from fset.features
-                this.surveyQueryIntersect(fset)
-            })
-            } catch (error) {
-                console.log(error)
-                alert('No features found in the query result.')
-            }
-        },
+        // async taxlotQuery(fset) {
+        //     try{
+        //     await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features[0].geometry).then((fset: FeatureSet) => {
+        //         // query survey by intersecting geometry from fset.features
+        //         this.surveyQueryIntersect(fset)
+        //     })
+        //     } catch (error) {
+        //         console.log(error)
+        //         alert('No features found in the query result.')
+        //     }
+        // },
 
         async openPromise(data: any) {
             return Promise.all(data);
@@ -194,6 +224,7 @@ export const useMappingStore = defineStore('mapping_store', {
             this.address_whereClause = '';
             this.taxlot_whereClause = '';
             const survey_uniqueClauses = new Set(); // Use a Set to store unique clauses
+
 
             const fuse = new Fuse(this.featureAttributes, {
                 keys: keys, // Fields to search in
@@ -241,8 +272,7 @@ export const useMappingStore = defineStore('mapping_store', {
                     graphicsLayer.graphics.push(graphic);
                     view.map.add(graphicsLayer);
                     this.searchedLayerCheckbox = true;
-
-                    return layer.attributes;
+                    
                 });
 
                 const graphicsExtent = fset.features.reduce((extent: any, survey: any) => {

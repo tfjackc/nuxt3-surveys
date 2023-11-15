@@ -97,16 +97,6 @@ export const taxlotLayer = landGroup.findSublayerById(1);
 
 // -------------- graphics -----------------
 export const graphicsLayer = new GraphicsLayer({});
-export const bufferGraphic = new Graphic({
-    symbol: new SimpleFillSymbol({
-        color: [173, 216, 230, 0.8],
-        outline: {
-            color: [255, 255, 255],
-            width: 1
-        }
-    })
-});
-
 export const simpleFillSymbol = new SimpleFillSymbol({
     color: new Color([203,236,247,0.4]),
     outline: new SimpleLineSymbol({
@@ -116,6 +106,20 @@ export const simpleFillSymbol = new SimpleFillSymbol({
         miterLimit: 1,
         style: "solid",
         width: 1
+    }),
+    style: "solid",
+});
+
+export const highlightGraphic = new GraphicsLayer({});
+export const highlightSymbol = new SimpleFillSymbol({
+    color: new Color([255,255,0,0.5]),
+    outline: new SimpleLineSymbol({
+        cap: "round",
+        color: new Color([255,255,0,1]),
+        join: "round",
+        miterLimit: 1,
+        style: "solid",
+        width: 3
     }),
     style: "solid",
 });
