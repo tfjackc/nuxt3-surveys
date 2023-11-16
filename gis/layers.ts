@@ -103,7 +103,7 @@ export const graphicsLayer = new GraphicsLayer({
    // effect:  "drop-shadow(1px, 1px, 0.5px)"
 });
 export const simpleFillSymbol = new SimpleFillSymbol({
-    color: new Color([203,236,247,0.1]),
+    color: new Color([203,236,247,0.4]),
     outline: new SimpleLineSymbol({
         cap: "round",
         color: new Color([119,118,123,1]),
@@ -116,7 +116,7 @@ export const simpleFillSymbol = new SimpleFillSymbol({
 });
 
 export const highlightLayer = new GraphicsLayer({
-   // effect:  "drop-shadow(3px, 2px, 1px)"
+    effect:  "drop-shadow(1px, 2px, 3px)"
 });
 
 export const highlightFillSymbol = new SimpleFillSymbol({
