@@ -160,10 +160,12 @@ export const useMappingStore = defineStore('mapping_store', {
                 //await this.taxlotQuery()
 
                 try{
+                    console.log(this.taxlot_whereClause)
                     await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: FeatureSet) => {
 
                         // query survey by intersecting geometry from fset.features
-                        fset.features.map(async (layer: any) => {
+
+                        fset.features.forEach(async (layer: any) => {
                             this.searchCount += 1;
                             const taxlot_graphic = new Graphic({
                                 geometry: layer.geometry,
@@ -187,7 +189,7 @@ export const useMappingStore = defineStore('mapping_store', {
             }
         },
 
-        async queryLayer(layer: any, out_fields: string[] | Ref<string[]>, where_clause: StringOrArray, geometry: boolean, queryGeometry: any = layer.geometry) {
+        async queryLayer(layer: any, out_fields: string[] | Ref<string[]>, where_clause: StringOrArray, geometry: boolean, queryGeometry = layer.geometry) {
             const queryLayer = layer.createQuery();
             queryLayer.geometry = queryGeometry;
             queryLayer.where = where_clause;
@@ -217,14 +219,18 @@ export const useMappingStore = defineStore('mapping_store', {
 
         },
 
-        async surveyQueryIntersect(fset: FeatureSet) {
+        async surveyQueryIntersect(fset: any) {
 
             try{
               //  if (this.survey_whereClause != '') {
-                //this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
-                await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features.geometry).then((response: FeatureSet) => {
-                    this.createGraphicLayer(response);
-            })
+                this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
+             //   fset.forEach((feature: any) => {
+                        this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
+
+                        this.createGraphicLayer(response);
+                    })
+              //  })
+
               //  } else {
               //      alert('No features found in the query result.')
               //  }
@@ -288,11 +294,12 @@ export const useMappingStore = defineStore('mapping_store', {
         },
 
 
-        async createGraphicLayer(fset: any) {
+        async createGraphicLayer(fset: FeatureSet) {
             try {
 
             if (fset && fset.features) {
-                fset.features.map(async (layer: any) => {
+                fset.features.forEach((layer: any) => {
+                    this.searchCount += 1;
                     const graphic = new Graphic({
                         geometry: layer.geometry,
                         attributes: layer.attributes,
