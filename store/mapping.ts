@@ -120,49 +120,72 @@ export const useMappingStore = defineStore('mapping_store', {
                         this.taxlot_whereClause = Array.from(taxlot_uniqueClauses).join(' OR ');
 
                     });
-
-                    if (fset.features.length > 0) {
-                        this.searchCount += 1;
-                        //this.taxlotQuery(fset)
-                        try{
-                            // @ts-ignore
-                            this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features.geometry).then((response: FeatureSet) => {
-                                // query survey by intersecting geometry from fset.features
-                                // query survey by intersecting geometry from fset.features
-                                response.features.forEach(async (layer: any) => {
-                                    this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
-                                    this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, layer.geometry).then((response: FeatureSet) => {
-                                        this.createGraphicLayer(response);
-                                    })
-                                });
-
-                                response.features.map(async (layer: any) => {
-                                    this.searchCount += 1;
-                                    const taxlot_graphic = new Graphic({
-                                        geometry: layer.geometry,
-                                        attributes: layer.attributes,
-                                        symbol: highlightFillSymbol,
-                                        popupTemplate: taxlotTemplate
-                                    });
-                                    highlightLayer.graphics.add(taxlot_graphic);
-                                    view.map.add(highlightLayer);
-
-
-                                });
-
-                                // need to intersect surveys from intersected taxlots from address search
-
-                            })
-                        } catch (error) {
-                            console.log(error)
-                            alert('No features found in the query result.')
-                        }
-
-                    }
-                    else {
-                        alert('No features found in the query result.')
-                    }
                 })
+
+                this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: FeatureSet) => {
+                    // query survey by intersecting geometry from fset.features
+                    fset.features.forEach(async (layer: any) => {
+                        this.searchCount += 1;
+                        const taxlot_graphic = new Graphic({
+                            geometry: layer.geometry,
+                            attributes: layer.attributes,
+                            symbol: highlightFillSymbol,
+                            popupTemplate: taxlotTemplate
+                        });
+
+                        highlightLayer.graphics.add(taxlot_graphic);
+                        view.map.add(highlightLayer);
+
+                    });
+
+                    this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
+                    this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
+                        this.createGraphicLayer(response);
+                    })
+                })
+
+                    // if (fset.features.length > 0) {
+                    //     this.searchCount += 1;
+                    //     //this.taxlotQuery(fset)
+                    //     try{
+                    //         // @ts-ignore
+                    //         this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features.geometry).then((response: FeatureSet) => {
+                    //             // query survey by intersecting geometry from fset.features
+                    //             // query survey by intersecting geometry from fset.features
+                    //             response.features.forEach(async (layer: any) => {
+                    //                 this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
+                    //                 this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, layer.geometry).then((response: FeatureSet) => {
+                    //                     this.createGraphicLayer(response);
+                    //                 })
+                    //             });
+                    //
+                    //             response.features.map(async (layer: any) => {
+                    //                 this.searchCount += 1;
+                    //                 const taxlot_graphic = new Graphic({
+                    //                     geometry: layer.geometry,
+                    //                     attributes: layer.attributes,
+                    //                     symbol: highlightFillSymbol,
+                    //                     popupTemplate: taxlotTemplate
+                    //                 });
+                    //                 highlightLayer.graphics.add(taxlot_graphic);
+                    //                 view.map.add(highlightLayer);
+                    //
+                    //
+                    //             });
+                    //
+                    //             // need to intersect surveys from intersected taxlots from address search
+                    //
+                    //         })
+                    //     } catch (error) {
+                    //         console.log(error)
+                    //         alert('No features found in the query result.')
+                    //     }
+                    //
+                    // }
+                    // else {
+                    //     alert('No features found in the query result.')
+                    // }
+
 
 
 
