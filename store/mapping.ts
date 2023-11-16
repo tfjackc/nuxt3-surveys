@@ -10,7 +10,7 @@ import {
     surveyTemplate,
     highlightLayer,
     highlightFillSymbol,
-    taxlotTemplate,
+    taxlotTemplate, iconSymbol, addressPointTemplate,
 } from "~/gis/layers";
 import type {Ref} from "vue";
 import Fuse, { type FuseResultMatch } from "fuse.js";
@@ -109,6 +109,19 @@ export const useMappingStore = defineStore('mapping_store', {
             } else if (this.default_search == 'Addresses') {
                 this.address_whereClause = `full_address2 LIKE '%${this.searchedValue}%'`;
                 await this.queryLayer(addressPointLayer, addressFields, this.address_whereClause, true).then((fset: FeatureSet) => {
+
+                    fset.features.forEach(async (layer: any) => {
+                        const address_graphic = new Graphic({
+                            geometry: layer.geometry,
+                            attributes: layer.attributes,
+                            symbol: iconSymbol,
+                            popupTemplate: addressPointTemplate
+                        });
+
+                        highlightLayer.graphics.add(address_graphic);
+                        //view.map.add(highlightLayer);
+
+                    });
                     //   query survey by intersecting geometry from fset.features
                     const taxlot_uniqueClauses = new Set();
                     fset.features.forEach((feature: any) => {

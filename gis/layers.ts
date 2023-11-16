@@ -6,6 +6,7 @@ import Graphic from "@arcgis/core/Graphic";
 import Color from "@arcgis/core/Color";
 import SimpleLineSymbol from "@arcgis/core/symbols/SimpleLineSymbol";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import {PictureMarkerSymbol} from "@arcgis/core/symbols";
 
 // -------------- surveys -----------------
 export const surveyTemplate = {
@@ -125,5 +126,11 @@ export const highlightFillSymbol = new SimpleFillSymbol({
         width: 2
     }),
     style: "solid"
+});
+
+export const iconSymbol = new PictureMarkerSymbol({
+    url: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+    width: "25px",
+    height: "41px"
 });
 // -------------- graphics -----------------
