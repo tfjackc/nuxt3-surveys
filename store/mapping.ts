@@ -125,7 +125,8 @@ export const useMappingStore = defineStore('mapping_store', {
                         this.searchCount += 1;
                         //this.taxlotQuery(fset)
                         try{
-                            this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features.geometry).then((response: FeatureSet) => {
+                            // @ts-ignore
+                             this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features.geometry).then((response: FeatureSet) => {
                                 // query survey by intersecting geometry from fset.features
                                 // query survey by intersecting geometry from fset.features
                                 response.features.map(async (layer: any) => {
@@ -136,14 +137,14 @@ export const useMappingStore = defineStore('mapping_store', {
                                         symbol: highlightFillSymbol,
                                         popupTemplate: taxlotTemplate
                                     });
-
                                     highlightLayer.graphics.add(taxlot_graphic);
                                     view.map.add(highlightLayer);
 
+                                    return layer.geometry
                                 });
 
+                                // need to intersect surveys from intersected taxlots from address search
 
-                                this.surveyQueryIntersect(response)
                             })
                         } catch (error) {
                             console.log(error)
@@ -164,7 +165,6 @@ export const useMappingStore = defineStore('mapping_store', {
                     await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: FeatureSet) => {
 
                         // query survey by intersecting geometry from fset.features
-
                         fset.features.forEach(async (layer: any) => {
                             this.searchCount += 1;
                             const taxlot_graphic = new Graphic({
@@ -178,8 +178,10 @@ export const useMappingStore = defineStore('mapping_store', {
                             view.map.add(highlightLayer);
 
                         });
-
-                        this.surveyQueryIntersect(fset)
+                            this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
+                            this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
+                            this.createGraphicLayer(response);
+                        })
 
                     })
                 } catch (error) {
@@ -219,28 +221,19 @@ export const useMappingStore = defineStore('mapping_store', {
 
         },
 
-        async surveyQueryIntersect(fset: any) {
-
-            try{
-              //  if (this.survey_whereClause != '') {
-                this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
-             //   fset.forEach((feature: any) => {
-                        this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
-
-                        this.createGraphicLayer(response);
-                    })
-              //  })
-
-              //  } else {
-              //      alert('No features found in the query result.')
-              //  }
-            }
-            catch (error) {
-                console.log(error)
-                alert('No features found in the query result.')
-            }
-
-        },
+        // async surveyQueryIntersect(fset: any) {
+        //     try{
+        //         this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
+        //                 this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
+        //                 this.createGraphicLayer(response);
+        //             })
+        //     }
+        //     catch (error) {
+        //         console.log(error)
+        //         alert('No features found in the query result.')
+        //     }
+        //
+        // },
 
         async openPromise(data: any) {
             return Promise.all(data);
