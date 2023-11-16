@@ -62,6 +62,7 @@ export const useMappingStore = defineStore('mapping_store', {
         },
         form: false as boolean,
         loading: false as boolean,
+        taxlot_geometry: [] as any,
     }),
 
     actions: {
@@ -111,7 +112,6 @@ export const useMappingStore = defineStore('mapping_store', {
                     //   query survey by intersecting geometry from fset.features
                     const taxlot_uniqueClauses = new Set();
                     fset.features.forEach((feature: any) => {
-                        console.log(feature.attributes.maptaxlot);
                         // Use a Set to store unique clauses
 
                         const clause = `MAPTAXLOT = '${feature.attributes.maptaxlot}'`;
@@ -126,9 +126,16 @@ export const useMappingStore = defineStore('mapping_store', {
                         //this.taxlotQuery(fset)
                         try{
                             // @ts-ignore
-                             this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features.geometry).then((response: FeatureSet) => {
+                            this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features.geometry).then((response: FeatureSet) => {
                                 // query survey by intersecting geometry from fset.features
                                 // query survey by intersecting geometry from fset.features
+                                response.features.forEach(async (layer: any) => {
+                                    this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
+                                    this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, layer.geometry).then((response: FeatureSet) => {
+                                        this.createGraphicLayer(response);
+                                    })
+                                });
+
                                 response.features.map(async (layer: any) => {
                                     this.searchCount += 1;
                                     const taxlot_graphic = new Graphic({
@@ -140,7 +147,7 @@ export const useMappingStore = defineStore('mapping_store', {
                                     highlightLayer.graphics.add(taxlot_graphic);
                                     view.map.add(highlightLayer);
 
-                                    return layer.geometry
+
                                 });
 
                                 // need to intersect surveys from intersected taxlots from address search
@@ -156,6 +163,10 @@ export const useMappingStore = defineStore('mapping_store', {
                         alert('No features found in the query result.')
                     }
                 })
+
+
+
+
             } else if (this.default_search == 'Maptaxlots') {
                 this.taxlot_whereClause = `MAPTAXLOT LIKE '%${this.searchedValue}%'`;
                 //await this.taxlotQuery()
