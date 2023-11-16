@@ -129,12 +129,7 @@ export const useMappingStore = defineStore('mapping_store', {
                             this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features.geometry).then((response: FeatureSet) => {
                                 // query survey by intersecting geometry from fset.features
                                 // query survey by intersecting geometry from fset.features
-                                response.features.forEach(async (layer: any) => {
-                                    this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
-                                    this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, layer.geometry).then((response: FeatureSet) => {
-                                        this.createGraphicLayer(response);
-                                    })
-                                });
+
 
                                 response.features.map(async (layer: any) => {
                                     this.searchCount += 1;
