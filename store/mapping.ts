@@ -10,7 +10,7 @@ import {
     surveyTemplate,
     highlightLayer,
     highlightFillSymbol,
-    taxlotTemplate,
+    taxlotTemplate, iconSymbol, addressPointTemplate,
 } from "~/gis/layers";
 import type {Ref} from "vue";
 import Fuse, { type FuseResultMatch } from "fuse.js";
@@ -50,15 +50,15 @@ export const useMappingStore = defineStore('mapping_store', {
         ],
         survey_filter: [] as string[],
         survey_filter_choices: {
-          items: [
-                  {field: 'Search All', value: []},
-                  {field: 'Survey Numbers', value: 'cs'},
-                  {field: 'Partition Plats', value: 'pp'},
-                  {field: 'Township/Ranges', value: 'trsqq'},
-                  {field: 'Subdivisions', value: 'subdivision'},
-                  {field: 'Prepared For', value: 'prepared_for'},
-                  {field: 'Prepared By', value: 'prepared_by'},
-          ]
+            items: [
+                {field: 'Search All', value: []},
+                {field: 'Survey Numbers', value: 'cs'},
+                {field: 'Partition Plats', value: 'pp'},
+                {field: 'Township/Ranges', value: 'trsqq'},
+                {field: 'Subdivisions', value: 'subdivision'},
+                {field: 'Prepared For', value: 'prepared_for'},
+                {field: 'Prepared By', value: 'prepared_by'},
+            ]
         },
         form: false as boolean,
         loading: false as boolean,
@@ -74,7 +74,7 @@ export const useMappingStore = defineStore('mapping_store', {
 
         async addLayerToMap(layer: any) {
             if (view && layer) {
-                view.map.add(layer);
+                view.map.add(layer, 0);
             }
         },
 
@@ -109,6 +109,19 @@ export const useMappingStore = defineStore('mapping_store', {
             } else if (this.default_search == 'Addresses') {
                 this.address_whereClause = `full_address2 LIKE '%${this.searchedValue}%'`;
                 await this.queryLayer(addressPointLayer, addressFields, this.address_whereClause, true).then((fset: FeatureSet) => {
+
+                    fset.features.forEach(async (layer: any) => {
+                        const address_graphic = new Graphic({
+                            geometry: layer.geometry,
+                            attributes: layer.attributes,
+                            symbol: iconSymbol,
+                            popupTemplate: addressPointTemplate
+                        });
+
+                        highlightLayer.graphics.add(address_graphic, 1);
+                        //view.map.add(highlightLayer);
+
+                    });
                     //   query survey by intersecting geometry from fset.features
                     const taxlot_uniqueClauses = new Set();
                     fset.features.forEach((feature: any) => {
@@ -120,46 +133,9 @@ export const useMappingStore = defineStore('mapping_store', {
                         this.taxlot_whereClause = Array.from(taxlot_uniqueClauses).join(' OR ');
 
                     });
-
-                    if (fset.features.length > 0) {
-                        this.searchCount += 1;
-                        //this.taxlotQuery(fset)
-                        try{
-                            // @ts-ignore
-                            this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true, fset.features.geometry).then((response: FeatureSet) => {
-                                // query survey by intersecting geometry from fset.features
-                                // query survey by intersecting geometry from fset.features
-
-
-                                response.features.map(async (layer: any) => {
-                                    this.searchCount += 1;
-                                    const taxlot_graphic = new Graphic({
-                                        geometry: layer.geometry,
-                                        attributes: layer.attributes,
-                                        symbol: highlightFillSymbol,
-                                        popupTemplate: taxlotTemplate
-                                    });
-                                    highlightLayer.graphics.add(taxlot_graphic);
-                                    view.map.add(highlightLayer);
-
-
-                                });
-
-                                // need to intersect surveys from intersected taxlots from address search
-
-                            })
-                        } catch (error) {
-                            console.log(error)
-                            alert('No features found in the query result.')
-                        }
-
-                    }
-                    else {
-                        alert('No features found in the query result.')
-                    }
                 })
 
-
+                await this.taxlotQuery()
 
 
             } else if (this.default_search == 'Maptaxlots') {
@@ -168,28 +144,9 @@ export const useMappingStore = defineStore('mapping_store', {
 
                 try{
                     console.log(this.taxlot_whereClause)
-                    await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: FeatureSet) => {
 
-                        // query survey by intersecting geometry from fset.features
-                        fset.features.forEach(async (layer: any) => {
-                            this.searchCount += 1;
-                            const taxlot_graphic = new Graphic({
-                                geometry: layer.geometry,
-                                attributes: layer.attributes,
-                                symbol: highlightFillSymbol,
-                                popupTemplate: taxlotTemplate
-                            });
+                    await this.taxlotQuery()
 
-                            highlightLayer.graphics.add(taxlot_graphic);
-                            view.map.add(highlightLayer);
-
-                        });
-                            this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
-                            this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
-                            this.createGraphicLayer(response);
-                        })
-
-                    })
                 } catch (error) {
                     console.log(error)
                     alert('No features found in the query result.')
@@ -212,9 +169,9 @@ export const useMappingStore = defineStore('mapping_store', {
 
             try{
                 if (this.survey_whereClause != '') {
-                await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true).then((fset: any) => {
-                    this.createGraphicLayer(fset);
-                })
+                    await this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true).then((fset: any) => {
+                        this.createGraphicLayer(fset);
+                    })
                 } else {
                     alert('No features found in the query result.')
                 }
@@ -223,23 +180,33 @@ export const useMappingStore = defineStore('mapping_store', {
                 console.log(error)
                 alert('No features found in the query result.')
             }
-
-
         },
 
-        // async surveyQueryIntersect(fset: any) {
-        //     try{
-        //         this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
-        //                 this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
-        //                 this.createGraphicLayer(response);
-        //             })
-        //     }
-        //     catch (error) {
-        //         console.log(error)
-        //         alert('No features found in the query result.')
-        //     }
-        //
-        // },
+        async taxlotQuery() {
+            await this.queryLayer(taxlotLayer, taxlotFields, this.taxlot_whereClause, true).then((fset: FeatureSet) => {
+
+                // query survey by intersecting geometry from fset.features
+                fset.features.forEach(async (layer: any) => {
+                    this.searchCount += 1;
+                    const taxlot_graphic = new Graphic({
+                        geometry: layer.geometry,
+                        attributes: layer.attributes,
+                        symbol: highlightFillSymbol,
+                        popupTemplate: taxlotTemplate
+                    });
+
+                    highlightLayer.graphics.add(taxlot_graphic, 0);
+                    view.map.add(highlightLayer, 2);
+
+                });
+                this.survey_whereClause = "cs NOT IN ('2787','2424','1391','4188')";
+                this.queryLayer(surveyLayer, surveyFields, this.survey_whereClause, true, fset.features[0].geometry).then((response: FeatureSet) => {
+                    this.createGraphicLayer(response);
+                })
+
+            })
+        },
+
 
         async openPromise(data: any) {
             return Promise.all(data);
@@ -296,36 +263,36 @@ export const useMappingStore = defineStore('mapping_store', {
         async createGraphicLayer(fset: FeatureSet) {
             try {
 
-            if (fset && fset.features) {
-                fset.features.forEach((layer: any) => {
-                    this.searchCount += 1;
-                    const graphic = new Graphic({
-                        geometry: layer.geometry,
-                        attributes: layer.attributes,
-                        symbol: simpleFillSymbol,
-                        popupTemplate: surveyTemplate
+                if (fset && fset.features) {
+                    fset.features.forEach((layer: any) => {
+                        this.searchCount += 1;
+                        const graphic = new Graphic({
+                            geometry: layer.geometry,
+                            attributes: layer.attributes,
+                            symbol: simpleFillSymbol,
+                            popupTemplate: surveyTemplate
+                        });
+
+                        graphicsLayer.graphics.add(graphic);
+                        view.map.add(graphicsLayer, 1);
+                        this.searchedLayerCheckbox = true;
+
                     });
 
-                    graphicsLayer.graphics.add(graphic);
-                    view.map.add(graphicsLayer);
-                    this.searchedLayerCheckbox = true;
+                    const graphicsExtent = fset.features.reduce((extent: any, survey: any) => {
+                        extent.union(survey.geometry.extent);
+                        return extent;
+                    }, fset.features[0].geometry.extent);
 
-                });
+                    view.goTo(graphicsExtent).then(() => {
+                        console.log("view.GoTo Searched Surveys");
+                    });
 
-                const graphicsExtent = fset.features.reduce((extent: any, survey: any) => {
-                    extent.union(survey.geometry.extent);
-                    return extent;
-                }, fset.features[0].geometry.extent);
+                    await this.clearSurveyLayer();
 
-                view.goTo(graphicsExtent).then(() => {
-                    console.log("view.GoTo Searched Surveys");
-                });
-
-                await this.clearSurveyLayer();
-
-            } else {
-                console.warn('No features found in the query result.');
-            }
+                } else {
+                    console.warn('No features found in the query result.');
+                }
             } catch (error) {
                 console.log(error)
                 alert('No features found in the query result.')

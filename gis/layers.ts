@@ -6,6 +6,7 @@ import Graphic from "@arcgis/core/Graphic";
 import Color from "@arcgis/core/Color";
 import SimpleLineSymbol from "@arcgis/core/symbols/SimpleLineSymbol";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import {PictureMarkerSymbol} from "@arcgis/core/symbols";
 
 // -------------- surveys -----------------
 export const surveyTemplate = {
@@ -98,9 +99,11 @@ export const taxlotLayer = landGroup.findSublayerById(1);
 // -------------- taxlots -----------------
 
 // -------------- graphics -----------------
-export const graphicsLayer = new GraphicsLayer({});
+export const graphicsLayer = new GraphicsLayer({
+   // effect:  "drop-shadow(1px, 1px, 0.5px)"
+});
 export const simpleFillSymbol = new SimpleFillSymbol({
-    color: new Color([203,236,247,0.4]),
+    color: new Color([203,236,247,0.1]),
     outline: new SimpleLineSymbol({
         cap: "round",
         color: new Color([119,118,123,1]),
@@ -112,7 +115,9 @@ export const simpleFillSymbol = new SimpleFillSymbol({
     style: "solid",
 });
 
-export const highlightLayer = new GraphicsLayer({});
+export const highlightLayer = new GraphicsLayer({
+   // effect:  "drop-shadow(3px, 2px, 1px)"
+});
 
 export const highlightFillSymbol = new SimpleFillSymbol({
     color: new Color([0,32,194,0]),
@@ -122,8 +127,15 @@ export const highlightFillSymbol = new SimpleFillSymbol({
         join: "round",
         miterLimit: 1,
         style: "solid",
-        width: 2
+        width: 1
     }),
-    style: "solid"
+    style: "solid",
+});
+
+export const iconSymbol = new PictureMarkerSymbol({
+    url: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
+    width: "25px",
+    height: "41px",
+    yoffset: "20px",
 });
 // -------------- graphics -----------------
