@@ -4,13 +4,13 @@ import MapView from "@arcgis/core/views/MapView";
 import {
     addressPointLayer,
     addressPointTemplate,
-    graphicsLayer,
+    graphicsLayer, highlightFillSymbol,
     highlightLayer,
     iconSymbol,
     simpleFillSymbol,
     surveyLayer,
     surveyTemplate,
-    taxlotLayer,
+    taxlotLayer, taxlotTemplate,
 } from "~/gis/layers";
 import type { Ref } from "vue";
 import Fuse, { type FuseResultMatch } from "fuse.js";
@@ -128,7 +128,7 @@ export const useMappingStore = defineStore("mapping_store", {
                         });
 
                         highlightLayer.graphics.add(address_graphic, 1);
-                        view.map.add(highlightLayer, 2);
+                        //view.map.add(highlightLayer, 2);
                     });
                     //   query survey by intersecting geometry from fset.features
                     const taxlot_uniqueClauses = new Set();
@@ -208,13 +208,34 @@ export const useMappingStore = defineStore("mapping_store", {
                 const feature_layer = await layer.createFeatureLayer();
                 await feature_layer.load();
 
-                return this.queryLayer(
+                // Wait for the feature layer to be loaded
+                //await watchUtils.whenOnce(feature_layer, "loaded");
+
+                // Now you can safely use the feature_layer
+                const queryResult = await this.queryLayer(
                     feature_layer,
                     taxlotFields,
                     this.taxlot_whereClause,
                     true
                 );
-                
+
+                // Assuming queryResult is a FeatureSet with features
+                queryResult.features.forEach((feature: any) => {
+                    const taxlot_graphic = new Graphic({
+                        geometry: feature.geometry,
+                        attributes: feature.attributes,
+                        symbol: highlightFillSymbol,
+                        popupTemplate: taxlotTemplate,
+                    });
+
+                    highlightLayer.graphics.add(taxlot_graphic, 0);
+                });
+
+                view.map.add(highlightLayer, 2);
+
+                // Return the result of the queryLayer function
+                return queryResult;
+
             } catch (error) {
                 console.error("Error:", error);
             }
@@ -247,6 +268,24 @@ export const useMappingStore = defineStore("mapping_store", {
 
                     graphicsLayer.graphics.push(survey_graphic);
                     view.map.add(graphicsLayer, 1);
+
+                    graphicsLayer.when(() => {
+                        view.goTo(survey_graphic.geometry.extent);
+                    });
+
+                    // // Calculate the graphics extent
+                    // const graphicsExtent = response.features.reduce(
+                    //     (extent: any, survey: any) => {
+                    //         extent.union(survey.geometry.extent);
+                    //         return extent;
+                    //     },
+                    //     response.features[0].geometry.extent
+                    // );
+                    //
+                    // console.log("Graphics extent:", graphicsExtent);
+                    // console.log("count in graphics made: " + this.searchCount);
+                    // // Zoom to the graphics extent
+                    // await view.goTo(graphicsExtent);
 
 
                 });
