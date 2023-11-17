@@ -256,43 +256,40 @@ export const useMappingStore = defineStore("mapping_store", {
             });
         },
         async drawSurveys(newSurveyQuery: __esri.Query) {
-            surveyLayer.queryFeatures(newSurveyQuery).then((response: FeatureSet) => {
-                console.log(response.features.length);
-                response.features.forEach(async (layer: any) => {
-                    const survey_graphic = new Graphic({
+            try {
+                const response = await surveyLayer.queryFeatures(newSurveyQuery);
+                const graphics = response.features.map((layer: any) => {
+                    return new Graphic({
                         geometry: layer.geometry,
                         attributes: layer.attributes,
                         symbol: simpleFillSymbol,
                         popupTemplate: surveyTemplate,
                     });
-
-                    graphicsLayer.graphics.push(survey_graphic);
-                    view.map.add(graphicsLayer, 1);
-
-                    graphicsLayer.when(() => {
-                        view.goTo(survey_graphic.geometry.extent);
-                    });
-
-                    // // Calculate the graphics extent
-                    // const graphicsExtent = response.features.reduce(
-                    //     (extent: any, survey: any) => {
-                    //         extent.union(survey.geometry.extent);
-                    //         return extent;
-                    //     },
-                    //     response.features[0].geometry.extent
-                    // );
-                    //
-                    // console.log("Graphics extent:", graphicsExtent);
-                    // console.log("count in graphics made: " + this.searchCount);
-                    // // Zoom to the graphics extent
-                    // await view.goTo(graphicsExtent);
-
-
                 });
-            });
-            this.searchedLayerCheckbox = true;
-            await this.clearSurveyLayer();
-        },
+
+                graphicsLayer.graphics.addMany(graphics);
+                view.map.add(graphicsLayer, 1);
+
+                // Combine the extents of all graphics
+                const combinedExtent = graphics.reduce((extent: any, graphic: any) => {
+                    extent.union(graphic.geometry.extent);
+                    return extent;
+                }, graphics[0].geometry.extent);
+
+                // Zoom to the combined extent
+                await graphicsLayer.when(() => {
+                    view.goTo(combinedExtent);
+                });
+
+                this.searchedLayerCheckbox = true;
+                await this.clearSurveyLayer();
+            } catch (error) {
+                console.error("Error:", error);
+                // Handle the error as needed
+                throw error; // Rethrow the error if needed
+            }
+        }
+        ,
 
         async openPromise(data: any) {
             return Promise.all(data);
