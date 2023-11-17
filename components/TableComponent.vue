@@ -21,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import { VDataTable } from "vuetify/labs/VDataTable";
 import { useMappingStore } from "@/store/mapping";
 import {storeToRefs} from "pinia";
 const mapping_store = useMappingStore()

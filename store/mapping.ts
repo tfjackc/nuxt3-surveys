@@ -1,21 +1,23 @@
-import { defineStore } from "pinia";
-import { initialize } from "~/gis/map";
+import {defineStore} from "pinia";
+import {initialize} from "~/gis/map";
 import MapView from "@arcgis/core/views/MapView";
 import {
     addressPointLayer,
     addressPointTemplate,
-    graphicsLayer, highlightFillSymbol,
+    graphicsLayer,
+    highlightFillSymbol,
     highlightLayer,
     iconSymbol,
     simpleFillSymbol,
     surveyLayer,
     surveyTemplate,
-    taxlotLayer, taxlotTemplate,
+    taxlotLayer,
+    taxlotTemplate,
 } from "~/gis/layers";
-import type { Ref } from "vue";
-import Fuse, { type FuseResultMatch } from "fuse.js";
-import { keys } from "~/gis/keys";
-import { addressFields, surveyFields, taxlotFields } from "~/gis/layer_info";
+import type {Ref} from "vue";
+import Fuse, {type FuseResultMatch} from "fuse.js";
+import {keys} from "~/gis/keys";
+import {addressFields, surveyFields, taxlotFields} from "~/gis/layer_info";
 import Graphic from "@arcgis/core/Graphic";
 import FeatureSet from "@arcgis/core/rest/support/FeatureSet";
 import Query from "@arcgis/core/rest/support/Query";
@@ -90,6 +92,8 @@ export const useMappingStore = defineStore("mapping_store", {
         },
 
         async onSubmit() {
+            this.filteredData = [];
+            this.dataLoaded = false;
             this.searchCount = 0;
             graphicsLayer.graphics.removeAll();
             highlightLayer.graphics.removeAll();
@@ -178,7 +182,7 @@ export const useMappingStore = defineStore("mapping_store", {
             queryLayer.returnGeometry = geometry;
             queryLayer.spatialRelationship = "intersects";
             //@ts-ignore
-            queryLayer.outSpatialReference = view.map.basemap.baseLayers.items[0].spatialReference;
+            //queryLayer.outSpatialReference = view.map.basemap.baseLayers.items[0].spatialReference;
 
             return layer.queryFeatures(queryLayer);
         },
@@ -193,6 +197,19 @@ export const useMappingStore = defineStore("mapping_store", {
                         true
                     ).then((fset: any) => {
                         this.createGraphicLayer(fset);
+                        return fset
+                    }).then( async(getTableData) => {
+                        // getTableData.features.forEach((feature: any) => {
+                        //     this.filteredData.push(feature.attributes);
+                        // });
+                        const promises = getTableData.features.map(async (survey: any) => {
+                            return survey.attributes;
+                        });
+                        this.dataLoaded = true;
+                        // Use Promise.all to wait for all promises to resolve
+                        const surveyAttributesArray = await Promise.all(promises);
+                        // Add the survey attributes to the filteredData array
+                        this.filteredData.push(...surveyAttributesArray);
                     });
                 } else {
                     alert("No features found in the query result.");
@@ -250,7 +267,7 @@ export const useMappingStore = defineStore("mapping_store", {
                     spatialRelationship: "intersects",
                     outFields: surveyFields,
                     //@ts-ignore
-                    outSpatialReference: view.map.basemap.baseLayers.items[0].spatialReference,
+                    //outSpatialReference: view.map.basemap.baseLayers.items[0].spatialReference,
                 });
                 return this.drawSurveys(newSurveyQuery);
             });
@@ -350,13 +367,12 @@ export const useMappingStore = defineStore("mapping_store", {
                     // Create an array of promises for each feature
                     const graphicPromises = fset.features.map((layer: any) => {
                         this.searchCount += 1;
-                        const graphic = new Graphic({
+                        return new Graphic({
                             geometry: layer.geometry,
                             attributes: layer.attributes,
                             symbol: simpleFillSymbol,
                             popupTemplate: surveyTemplate,
                         });
-                        return graphic;
                     });
 
                     // Wait for all promises to resolve
