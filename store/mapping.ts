@@ -199,17 +199,14 @@ export const useMappingStore = defineStore("mapping_store", {
                         this.createGraphicLayer(fset);
                         return fset
                     }).then( async(getTableData) => {
-                        // getTableData.features.forEach((feature: any) => {
-                        //     this.filteredData.push(feature.attributes);
+                        await this.pushData(getTableData);
+                        // const promises = getTableData.features.map(async (survey: any) => {
+                        //     return survey.attributes;
                         // });
-                        const promises = getTableData.features.map(async (survey: any) => {
-                            return survey.attributes;
-                        });
-                        this.dataLoaded = true;
-                        // Use Promise.all to wait for all promises to resolve
-                        const surveyAttributesArray = await Promise.all(promises);
-                        // Add the survey attributes to the filteredData array
-                        this.filteredData.push(...surveyAttributesArray);
+                        // // Use Promise.all to wait for all promises to resolve
+                        // const surveyAttributesArray = await Promise.all(promises);
+                        // // Add the survey attributes to the filteredData array
+                        // this.filteredData.push(...surveyAttributesArray);
                     });
                 } else {
                     alert("No features found in the query result.");
@@ -218,6 +215,16 @@ export const useMappingStore = defineStore("mapping_store", {
                 console.log(error);
                 alert("No features found in the query result.");
             }
+        },
+
+        async pushData(data: any) {
+            const promises = data.features.map(async (survey: any) => {
+                return survey.attributes;
+            });
+            // Use Promise.all to wait for all promises to resolve
+            const surveyAttributesArray = await Promise.all(promises);
+            // Add the survey attributes to the filteredData array
+            this.filteredData.push(...surveyAttributesArray);
         },
 
         async createTaxlotFeatureLayer(layer: __esri.Sublayer) {
@@ -249,7 +256,7 @@ export const useMappingStore = defineStore("mapping_store", {
                 });
 
                 view.map.add(highlightLayer, 2);
-
+                this.dataLoaded = true;
                 // Return the result of the queryLayer function
                 return queryResult;
 
@@ -382,6 +389,7 @@ export const useMappingStore = defineStore("mapping_store", {
                     graphicsLayer.graphics.addMany(graphic_return);
                     view.map.add(graphicsLayer, 1);
                     this.searchedLayerCheckbox = true;
+                    this.dataLoaded = true;
 
                     // Calculate the graphics extent
                     const graphicsExtent = fset.features.reduce(
