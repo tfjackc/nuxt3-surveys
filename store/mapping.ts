@@ -63,7 +63,6 @@ export const useMappingStore = defineStore("mapping_store", {
         form: false as boolean,
         loading: false as boolean,
         taxlot_geometry: [] as any,
-        unique_surveys: [] as StringOrArray | unknown[],
     }),
 
     actions: {
@@ -183,8 +182,6 @@ export const useMappingStore = defineStore("mapping_store", {
             queryLayer.outFields = out_fields;
             queryLayer.returnGeometry = geometry;
             queryLayer.spatialRelationship = "intersects";
-            //@ts-ignore
-            //queryLayer.outSpatialReference = view.map.basemap.baseLayers.items[0].spatialReference;
 
             return layer.queryFeatures(queryLayer);
         },
@@ -202,13 +199,6 @@ export const useMappingStore = defineStore("mapping_store", {
                         return fset
                     }).then( async(getTableData) => {
                         await this.pushData(getTableData);
-                        // const promises = getTableData.features.map(async (survey: any) => {
-                        //     return survey.attributes;
-                        // });
-                        // // Use Promise.all to wait for all promises to resolve
-                        // const surveyAttributesArray = await Promise.all(promises);
-                        // // Add the survey attributes to the filteredData array
-                        // this.filteredData.push(...surveyAttributesArray);
                     });
                 } else {
                     alert("No features found in the query result.");
@@ -269,39 +259,9 @@ export const useMappingStore = defineStore("mapping_store", {
             }
         },
 
-        // async intersectSurveys(fset: FeatureSet) {
-        //     fset.features.forEach((surveys: any) => {
-        //         const newSurveyQuery = new Query({
-        //             where: "cs NOT IN ('2787','2424','1391','4188')",
-        //             geometry: surveys.geometry,
-        //             returnGeometry: true,
-        //             spatialRelationship: "intersects",
-        //             outFields: surveyFields,
-        //             //@ts-ignore
-        //             //outSpatialReference: view.map.basemap.baseLayers.items[0].spatialReference,
-        //         });
-        //         return this.drawSurveys(newSurveyQuery);
-        //     });
-        // },
-        //
-        // async intersect_Surveys(fset: FeatureSet) {
-        //     fset.features.forEach((surveys: any) => {
-        //         const newSurveyQuery = new Query({
-        //             where: "cs NOT IN ('2787','2424','1391','4188')",
-        //             geometry: surveys.geometry,
-        //             returnGeometry: true,
-        //             spatialRelationship: "intersects",
-        //             outFields: surveyFields,
-        //             //@ts-ignore
-        //             //outSpatialReference: view.map.basemap.baseLayers.items[0].spatialReference,
-        //         });
-        //         return this.drawSurveys(newSurveyQuery);
-        //     });
-        // },
         async drawSurveys(feature_set: FeatureSet) {
             try {
                 const unique_surveys_set = new Set(); // Move the creation outside of the loop
-
                 const queryPromises = feature_set.features.map(async (feature: any) => {
                     const newSurveyQuery = new Query({
                         where: "cs NOT IN ('2787','2424','1391','4188')",
@@ -310,7 +270,6 @@ export const useMappingStore = defineStore("mapping_store", {
                         spatialRelationship: "intersects",
                         outFields: surveyFields,
                     });
-
                     // Query the survey layer for each feature in the feature set
                     const response = await surveyLayer.queryFeatures(newSurveyQuery);
                     return response.features; // Return the features for further processing if needed
@@ -318,10 +277,8 @@ export const useMappingStore = defineStore("mapping_store", {
 
                 // Wait for all query promises to resolve
                 const allResults = await Promise.all(queryPromises);
-
                 // If you need to combine the results, you can flatten the array
                 const flattenedResults = allResults.flat();
-
                 flattenedResults.forEach((survey: any) => {
                     // Add the cs attribute to the set
                     unique_surveys_set.add(survey.attributes.cs);
@@ -335,19 +292,6 @@ export const useMappingStore = defineStore("mapping_store", {
                 this.survey_whereClause = whereClause;
 
                 await this.surveyQuery();
-                // ---- good graphics sections ----
-
-                //     const survey_graphic = new Graphic({
-                //         geometry: survey.geometry,
-                //         attributes: survey.attributes,
-                //         symbol: simpleFillSymbol,
-                //         popupTemplate: surveyTemplate,
-                //     });
-                //
-                //     graphicsLayer.graphics.add(survey_graphic, 0);
-                // });
-                // view.map.add(graphicsLayer, 1);
-                // Rest of your code...
 
                 this.searchedLayerCheckbox = true;
                 await this.clearSurveyLayer();
