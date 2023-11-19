@@ -7,6 +7,8 @@ import Color from "@arcgis/core/Color";
 import SimpleLineSymbol from "@arcgis/core/symbols/SimpleLineSymbol";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import {PictureMarkerSymbol} from "@arcgis/core/symbols";
+import SimpleMarkerSymbol from "@arcgis/core/symbols/SimpleMarkerSymbol";
+import WebStyleSymbol from "@arcgis/core/symbols/WebStyleSymbol";
 
 // -------------- surveys -----------------
 export const surveyTemplate = {
@@ -103,15 +105,11 @@ export const graphicsLayer = new GraphicsLayer({
    // effect:  "drop-shadow(1px, 1px, 0.5px)"
 });
 export const simpleFillSymbol = new SimpleFillSymbol({
-    color: new Color([203,236,247,0.4]),
-    outline: new SimpleLineSymbol({
-        cap: "round",
-        color: new Color([119,118,123,1]),
-        join: "round",
-        miterLimit: 1,
-        style: "solid",
-        width: 1
-    }),
+    color: [ 20, 130, 200, 0.5 ],
+    outline: {
+        color: "white",
+        width: .5
+    },
     style: "solid",
 });
 
@@ -123,7 +121,7 @@ export const highlightFillSymbol = new SimpleFillSymbol({
     color: new Color([0,32,194,0]),
     outline: new SimpleLineSymbol({
         cap: "round",
-        color: new Color([0,32,194,1]),
+        color: new Color([20, 199, 151, 1]),
         join: "round",
         miterLimit: 1,
         style: "solid",
@@ -138,4 +136,21 @@ export const iconSymbol = new PictureMarkerSymbol({
     height: "41px",
     yoffset: "20px",
 });
+
+export const webSymbol = new WebStyleSymbol({
+    name: "esri-pin",
+    styleName: "Esri2DPointSymbolsStyle"
+    //path: "https://raw.githubusercontent.com/Esri/calcite-ui-icons/master/icons/pin-24.svg",
+    //color: "red",
+    //size: "24px",  // pixels
+    // outline: new SimpleLineSymbol({
+    //     cap: "round",
+    //     color: new Color([20, 199, 151, 1]),
+    //     join: "round",
+    //     miterLimit: 1,
+    //     style: "solid",
+    //     width: 1
+    // }),
+});
+
 // -------------- graphics -----------------
