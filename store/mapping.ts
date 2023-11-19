@@ -331,8 +331,10 @@ export const useMappingStore = defineStore("mapping_store", {
                 const uniqueSurveysArray = Array.from(unique_surveys_set);
                 const whereClause = `cs IN ('${uniqueSurveysArray.join("', '")}')`;
                 console.log(whereClause);
+               // console.log(this.unique_surveys)
+                this.survey_whereClause = whereClause;
 
-                console.log(this.unique_surveys)
+                await this.surveyQuery();
                 // ---- good graphics sections ----
 
                 //     const survey_graphic = new Graphic({
