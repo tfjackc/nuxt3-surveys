@@ -149,12 +149,13 @@ export const useMappingStore = defineStore("mapping_store", {
                 });
 
                 const new_layer = await this.createTaxlotFeatureLayer(taxlotLayer);
-                await this.intersectSurveys(new_layer);
+                await this.drawSurveys(new_layer);
+
             } else if (this.default_search == "Maptaxlots") {
                 this.taxlot_whereClause = `MAPTAXLOT LIKE '%${this.searchedValue}%'`;
 
                 const new_layer = await this.createTaxlotFeatureLayer(taxlotLayer);
-                await this.intersectSurveys(new_layer);
+                await this.drawSurveys(new_layer);
 
                 try {
                     console.log(this.taxlot_whereClause);
@@ -255,6 +256,8 @@ export const useMappingStore = defineStore("mapping_store", {
                     highlightLayer.graphics.add(taxlot_graphic, 0);
                 });
 
+                console.log(highlightLayer)
+
                 view.map.add(highlightLayer, 2);
                 this.dataLoaded = true;
                 // Return the result of the queryLayer function
@@ -265,45 +268,67 @@ export const useMappingStore = defineStore("mapping_store", {
             }
         },
 
-        async intersectSurveys(fset: FeatureSet) {
-            fset.features.forEach((surveys: any) => {
-                const newSurveyQuery = new Query({
-                    where: "cs NOT IN ('2787','2424','1391','4188')",
-                    geometry: surveys.geometry,
-                    returnGeometry: true,
-                    spatialRelationship: "intersects",
-                    outFields: surveyFields,
-                    //@ts-ignore
-                    //outSpatialReference: view.map.basemap.baseLayers.items[0].spatialReference,
-                });
-                return this.drawSurveys(newSurveyQuery);
-            });
-        },
-        async drawSurveys(newSurveyQuery: __esri.Query) {
+        // async intersectSurveys(fset: FeatureSet) {
+        //     fset.features.forEach((surveys: any) => {
+        //         const newSurveyQuery = new Query({
+        //             where: "cs NOT IN ('2787','2424','1391','4188')",
+        //             geometry: surveys.geometry,
+        //             returnGeometry: true,
+        //             spatialRelationship: "intersects",
+        //             outFields: surveyFields,
+        //             //@ts-ignore
+        //             //outSpatialReference: view.map.basemap.baseLayers.items[0].spatialReference,
+        //         });
+        //         return this.drawSurveys(newSurveyQuery);
+        //     });
+        // },
+        //
+        // async intersect_Surveys(fset: FeatureSet) {
+        //     fset.features.forEach((surveys: any) => {
+        //         const newSurveyQuery = new Query({
+        //             where: "cs NOT IN ('2787','2424','1391','4188')",
+        //             geometry: surveys.geometry,
+        //             returnGeometry: true,
+        //             spatialRelationship: "intersects",
+        //             outFields: surveyFields,
+        //             //@ts-ignore
+        //             //outSpatialReference: view.map.basemap.baseLayers.items[0].spatialReference,
+        //         });
+        //         return this.drawSurveys(newSurveyQuery);
+        //     });
+        // },
+        async drawSurveys(feature_set: FeatureSet) {
             try {
-                const response = await surveyLayer.queryFeatures(newSurveyQuery);
-                const graphics = response.features.map((layer: any) => {
-                    return new Graphic({
-                        geometry: layer.geometry,
-                        attributes: layer.attributes,
-                        symbol: simpleFillSymbol,
-                        popupTemplate: surveyTemplate,
+                const queryPromises = feature_set.features.map(async (feature: any) => {
+                    const newSurveyQuery = new Query({
+                        where: "cs NOT IN ('2787','2424','1391','4188')",
+                        geometry: feature.geometry,
+                        returnGeometry: true,
+                        spatialRelationship: "intersects",
+                        outFields: surveyFields,
                     });
+
+                    // Query the survey layer for each feature in the feature set
+                    const response = await surveyLayer.queryFeatures(newSurveyQuery);
+
+                    // Process the query results as needed
+                    response.features.forEach((survey: any) => {
+                        console.log(survey.attributes);
+                    });
+
+                    return response.features; // Return the features for further processing if needed
                 });
 
-                graphicsLayer.graphics.addMany(graphics);
-                view.map.add(graphicsLayer, 1);
+                // Wait for all query promises to resolve
+                const allResults = await Promise.all(queryPromises);
 
-                // Combine the extents of all graphics
-                const combinedExtent = graphics.reduce((extent: any, graphic: any) => {
-                    extent.union(graphic.geometry.extent);
-                    return extent;
-                }, graphics[0].geometry.extent);
+                // If you need to combine the results, you can flatten the array
+                const flattenedResults = allResults.flat();
 
-                // Zoom to the combined extent
-                await graphicsLayer.when(() => {
-                    view.goTo(combinedExtent);
-                });
+                // Now you can process the flattened array of features as needed
+                console.log(flattenedResults);
+
+                // Rest of your code...
 
                 this.searchedLayerCheckbox = true;
                 await this.clearSurveyLayer();
@@ -312,8 +337,7 @@ export const useMappingStore = defineStore("mapping_store", {
                 // Handle the error as needed
                 throw error; // Rethrow the error if needed
             }
-        }
-        ,
+        },
 
         async openPromise(data: any) {
             return Promise.all(data);
