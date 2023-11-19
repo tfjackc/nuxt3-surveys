@@ -63,6 +63,7 @@ export const useMappingStore = defineStore("mapping_store", {
         form: false as boolean,
         loading: false as boolean,
         taxlot_geometry: [] as any,
+        unique_surveys: [] as StringOrArray | unknown[],
     }),
 
     actions: {
@@ -299,6 +300,8 @@ export const useMappingStore = defineStore("mapping_store", {
         // },
         async drawSurveys(feature_set: FeatureSet) {
             try {
+                const unique_surveys_set = new Set(); // Move the creation outside of the loop
+
                 const queryPromises = feature_set.features.map(async (feature: any) => {
                     const newSurveyQuery = new Query({
                         where: "cs NOT IN ('2787','2424','1391','4188')",
@@ -310,12 +313,6 @@ export const useMappingStore = defineStore("mapping_store", {
 
                     // Query the survey layer for each feature in the feature set
                     const response = await surveyLayer.queryFeatures(newSurveyQuery);
-
-                    // // Process the query results as needed
-                    // response.features.forEach((survey: any) => {
-                    //     console.log(survey.attributes);
-                    // });
-
                     return response.features; // Return the features for further processing if needed
                 });
 
@@ -325,30 +322,29 @@ export const useMappingStore = defineStore("mapping_store", {
                 // If you need to combine the results, you can flatten the array
                 const flattenedResults = allResults.flat();
 
-                // Now you can process the flattened array of features as needed
-                console.log(flattenedResults);
-                const flat_uniqueClauses = new Set();
-                flattenedResults.forEach((feature: any) => {
-                    // Use a Set to store unique clauses
-
-                    // Add the clause to the uniqueClauses set
-                    flat_uniqueClauses.add(feature);
+                flattenedResults.forEach((survey: any) => {
+                    // Add the cs attribute to the set
+                    unique_surveys_set.add(survey.attributes.cs);
                 });
 
-                flat_uniqueClauses.forEach((survey: any) => {
+                // Convert the set to an array and join the values
+                const uniqueSurveysArray = Array.from(unique_surveys_set);
+                const whereClause = `cs IN ('${uniqueSurveysArray.join("', '")}')`;
+                console.log(whereClause);
 
-                    console.log(survey.attributes.cs)
+                console.log(this.unique_surveys)
+                // ---- good graphics sections ----
 
-                    const survey_graphic = new Graphic({
-                        geometry: survey.geometry,
-                        attributes: survey.attributes,
-                        symbol: simpleFillSymbol,
-                        popupTemplate: surveyTemplate,
-                    });
-
-                    graphicsLayer.graphics.add(survey_graphic, 0);
-                });
-                view.map.add(graphicsLayer, 1);
+                //     const survey_graphic = new Graphic({
+                //         geometry: survey.geometry,
+                //         attributes: survey.attributes,
+                //         symbol: simpleFillSymbol,
+                //         popupTemplate: surveyTemplate,
+                //     });
+                //
+                //     graphicsLayer.graphics.add(survey_graphic, 0);
+                // });
+                // view.map.add(graphicsLayer, 1);
                 // Rest of your code...
 
                 this.searchedLayerCheckbox = true;
