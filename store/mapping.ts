@@ -311,10 +311,10 @@ export const useMappingStore = defineStore("mapping_store", {
                     // Query the survey layer for each feature in the feature set
                     const response = await surveyLayer.queryFeatures(newSurveyQuery);
 
-                    // Process the query results as needed
-                    response.features.forEach((survey: any) => {
-                        console.log(survey.attributes);
-                    });
+                    // // Process the query results as needed
+                    // response.features.forEach((survey: any) => {
+                    //     console.log(survey.attributes);
+                    // });
 
                     return response.features; // Return the features for further processing if needed
                 });
@@ -327,7 +327,18 @@ export const useMappingStore = defineStore("mapping_store", {
 
                 // Now you can process the flattened array of features as needed
                 console.log(flattenedResults);
-                flattenedResults.forEach((survey: any) => {
+                const flat_uniqueClauses = new Set();
+                flattenedResults.forEach((feature: any) => {
+                    // Use a Set to store unique clauses
+
+                    // Add the clause to the uniqueClauses set
+                    flat_uniqueClauses.add(feature);
+                });
+
+                flat_uniqueClauses.forEach((survey: any) => {
+
+                    console.log(survey.attributes.cs)
+
                     const survey_graphic = new Graphic({
                         geometry: survey.geometry,
                         attributes: survey.attributes,
@@ -337,7 +348,7 @@ export const useMappingStore = defineStore("mapping_store", {
 
                     graphicsLayer.graphics.add(survey_graphic, 0);
                 });
-                    view.map.add(graphicsLayer, 1);
+                view.map.add(graphicsLayer, 1);
                 // Rest of your code...
 
                 this.searchedLayerCheckbox = true;
