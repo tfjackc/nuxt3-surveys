@@ -327,7 +327,17 @@ export const useMappingStore = defineStore("mapping_store", {
 
                 // Now you can process the flattened array of features as needed
                 console.log(flattenedResults);
+                flattenedResults.forEach((survey: any) => {
+                    const survey_graphic = new Graphic({
+                        geometry: survey.geometry,
+                        attributes: survey.attributes,
+                        symbol: simpleFillSymbol,
+                        popupTemplate: surveyTemplate,
+                    });
 
+                    graphicsLayer.graphics.add(survey_graphic, 0);
+                });
+                    view.map.add(graphicsLayer, 1);
                 // Rest of your code...
 
                 this.searchedLayerCheckbox = true;
