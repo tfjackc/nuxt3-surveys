@@ -12,7 +12,7 @@ import {
     surveyTemplate,
     taxlotLayer,
     taxlotTemplate,
-    webSymbol,
+    iconSymbol,
 } from "~/gis/layers";
 import type {Ref} from "vue";
 import Fuse, {type FuseResultMatch} from "fuse.js";
@@ -127,7 +127,7 @@ export const useMappingStore = defineStore("mapping_store", {
                         const address_graphic = new Graphic({
                             geometry: layer.geometry,
                             attributes: layer.attributes,
-                            symbol: webSymbol,
+                            symbol: iconSymbol,
                             popupTemplate: addressPointTemplate,
                         });
 

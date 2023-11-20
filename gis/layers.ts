@@ -9,6 +9,7 @@ import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import {PictureMarkerSymbol} from "@arcgis/core/symbols";
 import SimpleMarkerSymbol from "@arcgis/core/symbols/SimpleMarkerSymbol";
 import WebStyleSymbol from "@arcgis/core/symbols/WebStyleSymbol";
+import CIMSymbol from "@arcgis/core/symbols/CIMSymbol";
 
 // -------------- surveys -----------------
 export const surveyTemplate = {
@@ -131,27 +132,9 @@ export const highlightFillSymbol = new SimpleFillSymbol({
 });
 
 export const iconSymbol = new PictureMarkerSymbol({
-    url: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
+    url: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
     width: "25px",
     height: "41px",
     yoffset: "20px",
 });
-
-export const webSymbol = new WebStyleSymbol({
-    name: "esri-pin-",
-    styleName: "Esri2DPointSymbolsStyle"
-    //path: "https://raw.githubusercontent.com/Esri/calcite-ui-icons/master/icons/pin-24.svg",
-    //color: "red",
-    //size: "24px",  // pixels
-    // outline: new SimpleLineSymbol({
-    //     cap: "round",
-    //     color: new Color([20, 199, 151, 1]),
-    //     join: "round",
-    //     miterLimit: 1,
-    //     style: "solid",
-    //     width: 1
-    // }),
-});
-
-
 // -------------- graphics -----------------
