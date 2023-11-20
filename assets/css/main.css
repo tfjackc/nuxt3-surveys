@@ -46,7 +46,7 @@ html, body, #__nuxt, #__layout {
 /*-------------------------------------*/
 
 .v-navigation-drawer {
-    height: auto;
+    height: auto !important;
 }
 .table_toggle {
     margin-left: 20px;
