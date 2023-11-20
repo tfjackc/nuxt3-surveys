@@ -28,19 +28,28 @@ html, body, #__nuxt, #__layout {
 /*.tablediv {*/
 /*    padding: 20px;*/
 /*}*/
-.v-expansion-panel {
-    position: fixed;
-    bottom: -27vh;
-    width: 100%;
-    transition: bottom 0.3s ease; /* Optional: Add a smooth transition effect */
-}
+/*--------------------------------------*/
+/*.v-expansion-panel {*/
+/*    position: fixed;*/
+/*    bottom: -27vh;*/
+/*    width: 100%;*/
+/*    transition: bottom 0.3s ease; !* Optional: Add a smooth transition effect *!*/
+/*}*/
 
-.v-expansion-panel--active {
-    bottom: -18vh; /* Adjust the value based on your preference or to avoid overlapping with other elements */
-}
+/*.v-expansion-panel--active {*/
+/*    bottom: -18vh; !* Adjust the value based on your preference or to avoid overlapping with other elements *!*/
+/*}*/
 
-.v-expansion-panel-text__wrapper {
-    padding: 0 !important;
+/*.v-expansion-panel-text__wrapper {*/
+/*    padding: 0 !important;*/
+/*}*/
+/*-------------------------------------*/
+
+.v-navigation-drawer {
+    height: auto;
+}
+.table_toggle {
+    margin-left: 20px;
 }
 a.v-btn {
     max-width: 300px;

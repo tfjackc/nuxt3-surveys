@@ -68,6 +68,7 @@ export const useMappingStore = defineStore("mapping_store", {
         form: false as boolean,
         loading: false as boolean,
         taxlot_geometry: [] as any,
+        drawer: false as boolean,
     }),
 
     actions: {
@@ -395,6 +396,7 @@ export const useMappingStore = defineStore("mapping_store", {
                     view.map.add(surveyGraphicsLayer, 1);
                     this.searchedLayerCheckbox = true;
                     this.dataLoaded = true;
+                    this.drawer = true;
 
                     // Calculate the graphics extent
                     const graphicsExtent = fset.features.reduce(

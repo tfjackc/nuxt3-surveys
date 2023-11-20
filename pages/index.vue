@@ -1,7 +1,8 @@
 <template>
   <v-app id="inspire">
     <v-main class="bg-shades-dark-gray">
-    <v-row :class="{ 'isData' : dataLoaded, 'noData' : !dataLoaded }">
+    <v-row >
+<!--     v-row :class="{ 'isData' : dataLoaded, 'noData' : !dataLoaded }"-->
         <v-col cols="4">
           <v-sheet rounded="lg">
             <v-list rounded="lg">
@@ -17,16 +18,13 @@
           </ClientOnly>
         </v-col>
       </v-row>
-      <v-expansion-panels
-          v-if="filteredData.length > 0"
-          v-model="panel"
-          @click="exp_panel_click">
-        <v-expansion-panel title="Data Table">
-          <v-expansion-panel-text >
-            <TableComponent />
-          </v-expansion-panel-text>
-        </v-expansion-panel>
-      </v-expansion-panels>
+      <v-navigation-drawer
+          v-model="drawer"
+          location="bottom"
+          temporary
+      >
+        <TableComponent />
+      </v-navigation-drawer>
     </v-main>
   </v-app>
 </template>
@@ -38,16 +36,9 @@ import { useMappingStore } from "~/store/mapping";
 import {storeToRefs } from "pinia";
 import { onMounted, ref } from "vue";
 const mapping_store = useMappingStore()
-const { filteredData, dataLoaded } = storeToRefs(mapping_store)
-const panel = ref([0])
-
-function exp_panel_click(event: any) {
-  const parentNode = event.target.parentNode;
-  mapping_store.dataLoaded = parentNode.getAttribute('aria-expanded') !== 'false';
-}
+const { filteredData, dataLoaded, drawer } = storeToRefs(mapping_store)
 
 onMounted(async() => {
   await mapping_store.initGetData()
 })
-
 </script>
