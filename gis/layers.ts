@@ -102,7 +102,7 @@ export const taxlotLayer = landGroup.findSublayerById(1);
 // -------------- taxlots -----------------
 
 // -------------- graphics -----------------
-export const graphicsLayer = new GraphicsLayer({
+export const surveyGraphicsLayer = new GraphicsLayer({
    // effect:  "drop-shadow(1px, 1px, 0.5px)"
 });
 export const simpleFillSymbol = new SimpleFillSymbol({
@@ -114,7 +114,11 @@ export const simpleFillSymbol = new SimpleFillSymbol({
     style: "solid",
 });
 
-export const highlightLayer = new GraphicsLayer({
+export const maptaxlotGraphicsLayer = new GraphicsLayer({
+    effect:  "drop-shadow(1px, 2px, 3px)"
+});
+
+export const addressGraphicsLayer = new GraphicsLayer({
     effect:  "drop-shadow(1px, 2px, 3px)"
 });
 

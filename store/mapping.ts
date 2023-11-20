@@ -3,17 +3,17 @@ import {initialize} from "~/gis/map";
 import MapView from "@arcgis/core/views/MapView";
 import {
     addressPointLayer,
-    addressPointTemplate,
-    graphicsLayer,
-    highlightFillSymbol,
-    highlightLayer,
-    simpleFillSymbol,
     surveyLayer,
-    surveyTemplate,
     taxlotLayer,
+    addressPointTemplate,
+    surveyTemplate,
     taxlotTemplate,
-    mapIconSymbol,
-    circleSymbol
+    surveyGraphicsLayer,
+    addressGraphicsLayer,
+    maptaxlotGraphicsLayer,
+    highlightFillSymbol,
+    simpleFillSymbol,
+    circleSymbol,
 } from "~/gis/layers";
 import type {Ref} from "vue";
 import Fuse, {type FuseResultMatch} from "fuse.js";
@@ -30,7 +30,9 @@ export const useMappingStore = defineStore("mapping_store", {
     state: () => ({
         featureAttributes: [] as any[],
         filteredData: [] as any[],
-        searchCount: 0 as number,
+        returnCount: 0 as number,
+        addressCount: 0 as number,
+        taxlotCount: 0 as number,
         searchedValue: "" as string,
         survey_whereClause:
             "cs NOT IN ('2787','2424','1391','4188')" as StringOrArray,
@@ -38,6 +40,8 @@ export const useMappingStore = defineStore("mapping_store", {
         taxlot_whereClause: "" as StringOrArray,
         surveyLayerCheckbox: true,
         searchedLayerCheckbox: false,
+        addressGraphicsLayerCheckbox: false,
+        maptaxlotGraphicsLayerCheckbox: false,
         fuse_key: "" as string,
         fuse_value: "" as string | number,
         keys_from_search: {} as Set<unknown>,
@@ -95,9 +99,13 @@ export const useMappingStore = defineStore("mapping_store", {
         async onSubmit() {
             this.filteredData = [];
             this.dataLoaded = false;
-            this.searchCount = 0;
-            graphicsLayer.graphics.removeAll();
-            highlightLayer.graphics.removeAll();
+            this.returnCount = 0;
+            this.addressCount = 0;
+            this.taxlotCount = 0;
+
+            surveyGraphicsLayer.graphics.removeAll();
+            maptaxlotGraphicsLayer.graphics.removeAll();
+            addressGraphicsLayer.graphics.removeAll();
             view.graphics.removeAll();
 
             this.featureAttributes = [];
@@ -108,15 +116,17 @@ export const useMappingStore = defineStore("mapping_store", {
 
             if (this.default_search == "Surveys") {
                 if (this.survey_filter.length > 0) {
-                    this.searchCount += 1;
+                    this.returnCount += 1;
                     this.survey_whereClause = `${this.survey_filter} LIKE '%${this.searchedValue}%'`;
                     await this.surveyQuery();
                 } else {
                     await this.surveyQuery();
                 }
             } else if (this.default_search == "Addresses") {
-                this.searchCount = 0;
+                this.returnCount = 0;
                 this.address_whereClause = `full_address2 LIKE '%${this.searchedValue}%'`;
+
+                try {
                 await this.queryLayer(
                     addressPointLayer,
                     addressFields,
@@ -124,7 +134,7 @@ export const useMappingStore = defineStore("mapping_store", {
                     true
                 ).then((fset: FeatureSet) => {
                     fset.features.forEach(async (layer: any) => {
-                        this.searchCount += 1;
+                        this.addressCount += 1;
                         const address_graphic = new Graphic({
                             geometry: layer.geometry,
                             attributes: layer.attributes,
@@ -132,8 +142,8 @@ export const useMappingStore = defineStore("mapping_store", {
                             popupTemplate: addressPointTemplate,
                         });
 
-                        highlightLayer.graphics.add(address_graphic, 1);
-                        //view.map.add(highlightLayer, 2);
+                        addressGraphicsLayer.graphics.add(address_graphic);
+                        // view.map.add(addressGraphicsLayer, 3);
                     });
                     //   query survey by intersecting geometry from fset.features
                     const taxlot_uniqueClauses = new Set();
@@ -146,23 +156,28 @@ export const useMappingStore = defineStore("mapping_store", {
                         this.taxlot_whereClause =
                             Array.from(taxlot_uniqueClauses).join(" OR ");
                     });
-                    console.log("count in first address search: " + this.searchCount);
+                    console.log("Address Count: " + this.addressCount);
                 });
 
-                const new_layer = await this.createTaxlotFeatureLayer(taxlotLayer);
-                await this.drawSurveys(new_layer);
+                if (this.addressCount > 0) {
+
+                    this.addressGraphicsLayerCheckbox = true;
+                    const new_layer = await this.createTaxlotFeatureLayer(taxlotLayer);
+                    await this.drawSurveys(new_layer);
+
+                } else {
+                    this.addressGraphicsLayerCheckbox = false;
+                    alert("No features found in the query result.");
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
 
             } else if (this.default_search == "Maptaxlots") {
                 this.taxlot_whereClause = `MAPTAXLOT LIKE '%${this.searchedValue}%'`;
-
+                try {
                 const new_layer = await this.createTaxlotFeatureLayer(taxlotLayer);
                 await this.drawSurveys(new_layer);
-
-                try {
-                    console.log(this.taxlot_whereClause);
-
-                    //await this.taxlotQuery()
-                    await this.createTaxlotFeatureLayer(taxlotLayer);
                 } catch (error) {
                     console.log(error);
                     alert("No features found in the query result.");
@@ -238,6 +253,7 @@ export const useMappingStore = defineStore("mapping_store", {
 
                 // Assuming queryResult is a FeatureSet with features
                 queryResult.features.forEach((feature: any) => {
+                    this.taxlotCount += 1;
                     const taxlot_graphic = new Graphic({
                         geometry: feature.geometry,
                         attributes: feature.attributes,
@@ -245,12 +261,12 @@ export const useMappingStore = defineStore("mapping_store", {
                         popupTemplate: taxlotTemplate,
                     });
 
-                    highlightLayer.graphics.add(taxlot_graphic, 0);
+                    maptaxlotGraphicsLayer.graphics.add(taxlot_graphic, 0);
                 });
 
-                console.log(highlightLayer)
-
-                view.map.add(highlightLayer, 2);
+                view.map.add(maptaxlotGraphicsLayer, 2);
+                this.maptaxlotGraphicsLayerCheckbox = true;
+                view.map.add(addressGraphicsLayer, 3);
                 this.dataLoaded = true;
                 // Return the result of the queryLayer function
                 return queryResult;
@@ -294,6 +310,7 @@ export const useMappingStore = defineStore("mapping_store", {
 
                 await this.surveyQuery();
 
+                this.maptaxlotGraphicsLayerCheckbox = true;
                 this.searchedLayerCheckbox = true;
                 await this.clearSurveyLayer();
             } catch (error) {
@@ -336,7 +353,7 @@ export const useMappingStore = defineStore("mapping_store", {
 
             // Build the WHERE clause with OR conditions
             searchResults.forEach((result) => {
-                this.searchCount += 1;
+                this.returnCount += 1;
                 const matches: FuseResultMatch[] | any = result.matches; // Array of matches
 
                 matches.forEach((match: any) => {
@@ -355,13 +372,13 @@ export const useMappingStore = defineStore("mapping_store", {
 
         async createGraphicLayer(fset: FeatureSet) {
             try {
-                this.searchCount = 0;
+                this.returnCount = 0;
                 if (fset && fset.features) {
                     console.log("Number of features:", fset.features.length);
 
                     // Create an array of promises for each feature
                     const graphicPromises = fset.features.map((layer: any) => {
-                        this.searchCount += 1;
+                        this.returnCount += 1;
                         return new Graphic({
                             geometry: layer.geometry,
                             attributes: layer.attributes,
@@ -373,9 +390,9 @@ export const useMappingStore = defineStore("mapping_store", {
                     // Wait for all promises to resolve
                     const graphic_return = await Promise.all(graphicPromises);
 
-                    // Add graphics to the graphicsLayer
-                    graphicsLayer.graphics.addMany(graphic_return);
-                    view.map.add(graphicsLayer, 1);
+                    // Add graphics to the surveyGraphicsLayer
+                    surveyGraphicsLayer.graphics.addMany(graphic_return);
+                    view.map.add(surveyGraphicsLayer, 1);
                     this.searchedLayerCheckbox = true;
                     this.dataLoaded = true;
 
@@ -389,7 +406,7 @@ export const useMappingStore = defineStore("mapping_store", {
                     );
 
                     console.log("Graphics extent:", graphicsExtent);
-                    console.log("count in graphics made: " + this.searchCount);
+                    console.log("count in graphics made: " + this.returnCount);
                     // Zoom to the graphics extent
                     await view.goTo(graphicsExtent);
 
@@ -401,7 +418,7 @@ export const useMappingStore = defineStore("mapping_store", {
                 console.error(error);
                 alert("An error occurred while processing the query result.");
             }
-            console.log("End of create graphics function count: " + this.searchCount);
+            console.log("End of create graphics function count: " + this.returnCount);
         },
 
         async clearSurveyLayer() {
@@ -416,7 +433,17 @@ export const useMappingStore = defineStore("mapping_store", {
 
         async searchedLayerCheck(e: any) {
             this.searchedLayerCheckbox = e.target.checked;
-            graphicsLayer.visible = this.searchedLayerCheckbox;
+            surveyGraphicsLayer.visible = this.searchedLayerCheckbox;
         },
+
+        async addressGraphicsLayerCheck(e: any) {
+            this.addressGraphicsLayerCheckbox = e.target.checked;
+           addressGraphicsLayer.visible = this.addressGraphicsLayerCheckbox;
+        },
+
+        async maptaxlotGraphicsLayerCheck(e: any) {
+            this.maptaxlotGraphicsLayerCheckbox = e.target.checked;
+            maptaxlotGraphicsLayer.visible = this.maptaxlotGraphicsLayerCheckbox;
+        }
     },
 }); // end of store
