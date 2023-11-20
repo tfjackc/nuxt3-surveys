@@ -138,7 +138,7 @@ export const iconSymbol = new PictureMarkerSymbol({
 });
 
 export const webSymbol = new WebStyleSymbol({
-    name: "esri-pin",
+    name: "esri-pin-",
     styleName: "Esri2DPointSymbolsStyle"
     //path: "https://raw.githubusercontent.com/Esri/calcite-ui-icons/master/icons/pin-24.svg",
     //color: "red",
@@ -152,5 +152,6 @@ export const webSymbol = new WebStyleSymbol({
     //     width: 1
     // }),
 });
+
 
 // -------------- graphics -----------------

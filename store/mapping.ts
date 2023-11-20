@@ -7,12 +7,12 @@ import {
     graphicsLayer,
     highlightFillSymbol,
     highlightLayer,
-    iconSymbol,
-    simpleFillSymbol, simpleIconSymbol,
+    simpleFillSymbol,
     surveyLayer,
     surveyTemplate,
     taxlotLayer,
-    taxlotTemplate, webSymbol,
+    taxlotTemplate,
+    webSymbol,
 } from "~/gis/layers";
 import type {Ref} from "vue";
 import Fuse, {type FuseResultMatch} from "fuse.js";
