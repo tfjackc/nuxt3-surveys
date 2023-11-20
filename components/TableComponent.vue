@@ -26,7 +26,7 @@ import { useMappingStore } from "@/store/mapping";
 import { storeToRefs } from "pinia";
 const mapping_store = useMappingStore()
 const { filteredData } = storeToRefs(mapping_store)
-const itemsPerPage = 10
+const itemsPerPage = 5
 const headers: [] | any =
   [
     {title: 'Survey', key: 'cs', align: 'center'},

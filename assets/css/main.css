@@ -1,11 +1,17 @@
 @import "https://js.arcgis.com/4.28/@arcgis/core/assets/esri/themes/dark/main.css";
 
+html, body, #__nuxt, #__layout {
+    height: 92vh;
+    margin: 0;
+}
+
 .map-container {
     width: 100%;
     height: 100%;
     border: 1px solid black;
-    min-height: 70vh;
+    overflow: hidden; /* Ensure no overflow inside the map container */
 }
+
 .v-list-item .v-btn {
     width: 100%;
 }
@@ -22,8 +28,19 @@
 /*.tablediv {*/
 /*    padding: 20px;*/
 /*}*/
+.v-expansion-panel {
+    position: fixed;
+    bottom: -27vh;
+    width: 100%;
+    transition: bottom 0.3s ease; /* Optional: Add a smooth transition effect */
+}
+
+.v-expansion-panel--active {
+    bottom: -18vh; /* Adjust the value based on your preference or to avoid overlapping with other elements */
+}
+
 .v-expansion-panel-text__wrapper {
-      padding: 0 !important;
+    padding: 0 !important;
 }
 a.v-btn {
     max-width: 300px;
