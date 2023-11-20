@@ -9,9 +9,9 @@
 .v-list-item .v-btn {
     width: 100%;
 }
-.v-data-table {
-    margin-top: 20px;
-}
+/*.v-data-table {*/
+/*    margin-top: 20px;*/
+/*}*/
 .v-row {
     padding: 20px;
 }
@@ -19,8 +19,11 @@
     padding-left: 20px;
     padding-right: 50px;
 }
-.tablediv {
-    padding: 20px;
+/*.tablediv {*/
+/*    padding: 20px;*/
+/*}*/
+.v-expansion-panel-text__wrapper {
+      padding: 0 !important;
 }
 a.v-btn {
     max-width: 300px;
