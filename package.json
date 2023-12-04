@@ -11,7 +11,6 @@
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",
-    "@types/d3": "^7.4.3",
     "nuxt": "^3.8.1",
     "vue": "^3.3.8",
     "vue-router": "^4.2.5",
@@ -21,7 +20,6 @@
     "@arcgis/core": "^4.28.8",
     "@nuxt/types": "^2.17.2",
     "@pinia/nuxt": "^0.5.1",
-    "d3": "^7.8.5",
     "fuse.js": "^7.0.0",
     "pinia": "^2.1.7"
   }
