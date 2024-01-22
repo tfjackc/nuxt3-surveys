@@ -1,7 +1,7 @@
 <template>
   <v-app id="inspire">
     <v-main class="bg-shades-dark-gray">
-    <v-row >
+    <v-row>
 <!--     v-row :class="{ 'isData' : dataLoaded, 'noData' : !dataLoaded }"-->
         <v-col cols="4">
           <v-sheet rounded="lg">
