@@ -3,7 +3,7 @@
     <v-fade-transition>
       <v-data-table
         v-if="filteredData.length > 0"
-        v-model:items-per-page="itemsPerPage"
+        items-per-page="5"
         :items="filteredData"
         :headers="headers"
         class="elevation-10"
@@ -26,7 +26,7 @@ import { useMappingStore } from "@/store/mapping";
 import { storeToRefs } from "pinia";
 const mapping_store = useMappingStore()
 const { filteredData } = storeToRefs(mapping_store)
-const itemsPerPage = 5
+//const itemsPerPage = 5
 const headers: [] | any =
   [
     {title: 'Survey', key: 'cs', align: 'center'},
