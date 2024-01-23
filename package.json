@@ -10,8 +10,8 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
-    "@nuxt/devtools": "latest",
-    "nuxt": "^3.8.1",
+    "@nuxt/devtools": "^1.0.6",
+    "nuxt": "^3.8.2",
     "vue": "^3.3.8",
     "vue-router": "^4.2.5",
     "vuetify-nuxt-module": "^0.6.5"
@@ -21,6 +21,7 @@
     "@nuxt/types": "^2.17.2",
     "@pinia/nuxt": "^0.5.1",
     "fuse.js": "^7.0.0",
-    "pinia": "^2.1.7"
+    "pinia": "^2.1.7",
+    "vite": "^5.0.12"
   }
 }
