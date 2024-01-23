@@ -6,6 +6,11 @@ export default defineNuxtConfig({
       enabled: true
     }
   },
+  vite: {
+    build: {
+      target: 'es2020'
+    }
+  },
   modules: [
     '@pinia/nuxt',
     'vuetify-nuxt-module'
