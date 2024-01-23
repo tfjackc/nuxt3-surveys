@@ -161,7 +161,6 @@ export const useMappingStore = defineStore("mapping_store", {
                 });
 
                 if (this.addressCount > 0) {
-
                     this.addressGraphicsLayerCheckbox = true;
                     const new_layer = await this.createTaxlotFeatureLayer(taxlotLayer);
                     await this.drawSurveys(new_layer);
