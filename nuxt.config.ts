@@ -16,9 +16,9 @@ export default defineNuxtConfig({
     'vuetify-nuxt-module'
   ],
   css: ['~/assets/css/main.css'],
-  // build: {
-  //   transpile: ['@arcgis/core']
-  // },
+  build: {
+    transpile: ['@arcgis/core']
+  },
   vuetify: {
     vuetifyOptions: {
       theme: {
